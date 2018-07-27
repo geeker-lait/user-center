@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.resources.ResourcesMapper">
+    <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.resources.Resources">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="resources_id" jdbcType="BIGINT" property="resourcesId"/>
+        <result column="path" jdbcType="VARCHAR" property="path"/>
+        <result column="uri" jdbcType="VARCHAR" property="uri"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="typ" jdbcType="INTEGER" property="typ"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_resources
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+    <insert id="insert" parameterType="com.lmt.mbsp.user.entity.resources.Resources">
+        insert into t_resources (
+          id, resources_id, path,uri,name,state, typ, create_time
+        )
+        values (
+          #{id,jdbcType=BIGINT},
+          #{resourcesId,jdbcType=BIGINT},
+          #{path,jdbcType=VARCHAR},
+          #{uri,jdbcType=VARCHAR},
+          #{name,jdbcType=VARCHAR},
+          #{state,jdbcType=INTEGER},
+          #{typ,jdbcType=INTEGER},
+          #{createTime,jdbcType=TIMESTAMP}
+        )
+  </insert>
+
+    <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.resources.Resources">
+    update
+      t_resources
+    set
+      resources_id = #{resourcesId,jdbcType=BIGINT},
+      name = #{name,jdbcType=VARCHAR},
+      state = #{state,jdbcType=INTEGER},
+      typ = #{typ,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select id, resources_id, path,uri,name, state, typ, create_time
+    from t_resources
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+    <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.resources.Resources" resultMap="BaseResultMap">
+        select id, resources_id, path,uri,name, state, typ, create_time
+        from t_resources
+        where
+        <if test="id != null">
+            id = #{id,jdbcType=BIGINT}
+        </if>
+    </select>
+
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.resources.Resources">
+      select
+        id, resources_id, path,uri,name, state, typ, create_time
+      from
+        t_resources
+      where
+        1 = 1
+        <if test="name != null">
+            and name = #{name,jdbcType=VARCHAR}
+        </if>
+        <if test="uri != null">
+            and uri = #{uri,jdbcType=VARCHAR}
+        </if>
+        <if test="uri != null">
+            and uri = #{uri,jdbcType=VARCHAR}
+        </if>
+        <if test="typ != null">
+            and uri = #{uri,jdbcType=INTEGER}
+        </if>
+        <if test="state != null">
+            and uri = #{state,jdbcType=INTEGER}
+        </if>
+
+    </select>
+
+    <select id="count" parameterType="java.lang.Long" resultType="java.lang.Integer">
+      select
+        count(*)
+      from
+        t_resources
+      where
+        1 = 1
+        <if test="name != null">
+            and name = #{name,jdbcType=VARCHAR}
+        </if>
+        <if test="uri != null">
+            and uri = #{uri,jdbcType=VARCHAR}
+        </if>
+        <if test="uri != null">
+            and uri = #{uri,jdbcType=VARCHAR}
+        </if>
+        <if test="typ != null">
+            and uri = #{uri,jdbcType=INTEGER}
+        </if>
+        <if test="state != null">
+            and uri = #{state,jdbcType=INTEGER}
+        </if>
+    </select>
+</mapper>

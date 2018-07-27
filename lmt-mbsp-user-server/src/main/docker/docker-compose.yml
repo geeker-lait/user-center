@@ -1,0 +1,14 @@
+version: "2.1"
+
+services:
+  java:
+    container_name: "@project.artifactId@"
+    image: "192.168.1.162:5000/@project.artifactId@"
+
+    volumes_from:
+      - container:pinpoint-agent
+
+networks:
+  default:
+    external:
+      - name: pinpoint_pinpoint

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.group.GroupMemberMapper">
+  <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.group.GroupMember">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="group_id" jdbcType="BIGINT" property="groupId" />
+    <result column="member_id" jdbcType="BIGINT" property="memberId" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_group_member
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupMember">
+    insert into t_group_member (id, group_id, member_id
+      )
+    values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{memberId,jdbcType=BIGINT}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.group.GroupMember">
+    update t_group_member
+    set group_id = #{groupId,jdbcType=BIGINT},
+      member_id = #{memberId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select id, group_id, member_id
+    from t_group_member
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.group.GroupMember">
+    select id, group_id, member_id
+    from t_group_member
+  </select>
+  <select id="count" parameterType="java.lang.Long" resultType="java.lang.Integer">
+    select count(*)
+    from t_group_member
+  </select>
+</mapper>
