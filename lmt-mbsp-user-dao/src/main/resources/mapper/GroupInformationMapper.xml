@@ -20,7 +20,7 @@
     where id = #{id,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupInformation">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupInformation" useGeneratedKeys="true" keyProperty="id">
     insert into t_group_info (id, group_id, legal_person,
     type, validity, business_scope,
     address, capital, phone,

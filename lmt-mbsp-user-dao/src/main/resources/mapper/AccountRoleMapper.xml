@@ -17,7 +17,7 @@
     where account_id = #{accountId,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.account.AccountRole">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.account.AccountRole" useGeneratedKeys="true" keyProperty="id">
     insert into t_account_role (id, account_id, role_id
       )
     values (#{id,jdbcType=BIGINT}, #{accountId,jdbcType=BIGINT}, #{roleId,jdbcType=BIGINT}
@@ -70,6 +70,12 @@
       <if test="id != null">AND id = #{id,jdbcType=BIGINT}</if>
       <if test="accountId != null">AND account_id = #{accountId,jdbcType=BIGINT}</if>
       <if test="roleId != null">AND role_id = #{roleId,jdbcType=BIGINT}</if>
+      <if test="accountIds != null and accountIds.size()>0">
+        AND
+        <foreach collection="accountIds" item="id" open="(" close=")" separator="or">
+          account_id = #{id}
+        </foreach>
+      </if>
     </where>
   </sql>
 </mapper>

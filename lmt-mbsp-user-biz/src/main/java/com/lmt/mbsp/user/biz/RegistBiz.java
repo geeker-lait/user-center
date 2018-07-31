@@ -1,6 +1,6 @@
 package com.lmt.mbsp.user.biz;
 
-import com.lmt.mbsp.user.vo.RegistInfo;
+import com.lmt.mbsp.user.vo.account.RegistInfo;
 
 /**
  * @Auther: lex (lex@lmt21.com)

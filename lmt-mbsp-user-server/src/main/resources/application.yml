@@ -1,27 +1,8 @@
-server:
-  port: 8080
-#  servlet:
-#      context-path:
-  context-path: /portal
-#  undertow:
-#    accesslog:
-#      dir:
-#      prefix: access_log.
-#      pattern: common
-#      rotate: true
-#      suffix:
-#    direct-buffers: true
-#    buffer-size: 10240
-#    max-http-post-size: 10
-#    io-threads: 16
-#    worker-threads: 256
-
-
 spring:
   profiles:
     active: dev
   application:
     name: user-center
-
 logging:
   config: classpath:logback.xml
+

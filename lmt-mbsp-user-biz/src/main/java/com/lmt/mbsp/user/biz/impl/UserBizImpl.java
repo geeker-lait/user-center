@@ -1,6 +1,7 @@
 package com.lmt.mbsp.user.biz.impl;
 
 import com.lmt.framework.core.exception.BusinessException;
+import com.lmt.framework.support.bean.EntityToModelUtils;
 import com.lmt.framework.support.entity.PagerResult;
 import com.lmt.framework.utils.RandomUtil;
 import com.lmt.framework.utils.StringUtils;
@@ -19,7 +20,19 @@ import com.lmt.mbsp.user.entity.user.User;
 import com.lmt.mbsp.user.entity.user.UserAccount;
 import com.lmt.mbsp.user.entity.user.UserPosition;
 import com.lmt.mbsp.user.service.*;
-import com.lmt.mbsp.user.vo.*;
+import com.lmt.mbsp.user.vo.account.AccountInfo;
+import com.lmt.mbsp.user.vo.account.AccountListInfo;
+import com.lmt.mbsp.user.vo.account.AccountNameInfo;
+import com.lmt.mbsp.user.vo.admin.AddAdminInfo;
+import com.lmt.mbsp.user.vo.admin.EditAdminInfo;
+import com.lmt.mbsp.user.vo.admin.ToEditAdminInfo;
+import com.lmt.mbsp.user.vo.operator.AddOperatorInfo;
+import com.lmt.mbsp.user.vo.operator.OperatorListInfo;
+import com.lmt.mbsp.user.vo.operator.ToEditOperatorInfo;
+import com.lmt.mbsp.user.vo.person.EditUserInfo;
+import com.lmt.mbsp.user.vo.person.UserDetailInfo;
+import com.lmt.mbsp.user.vo.person.UserInfo;
+import com.lmt.mbsp.user.vo.role.RoleInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +52,7 @@ public class UserBizImpl implements UserBiz {
     private UserPositionService userPositionService;
     private AccountService accountService;
     private AccountRoleService accountRoleService;
-    private AccountNameService accountPasswordService;
+    private AccountNameService accountNameService;
     private RoleService roleService;
 
     @Autowired
@@ -50,7 +63,7 @@ public class UserBizImpl implements UserBiz {
                                     UserPositionService userPositionService,
                                     AccountService accountService,
                                     AccountRoleService accountRoleService,
-                                    AccountNameService accountPasswordService,
+                                    AccountNameService accountNameService,
                                     RoleService roleService){
         this.groupService = groupService;
         this.groupUserService = groupUserService;
@@ -59,40 +72,58 @@ public class UserBizImpl implements UserBiz {
         this.userPositionService = userPositionService;
         this.accountService = accountService;
         this.accountRoleService = accountRoleService;
-        this.accountPasswordService = accountPasswordService;
+        this.accountNameService = accountNameService;
         this.roleService = roleService;
     }
 
     @Override
-    public void supplementInfo(UserInfo info) throws Exception {
-        Account account = selAccountById(info.getAccountId());
+    public ToEditAdminInfo toSupplement(Long userId) throws Exception{
+        if (userId != null && userId > 0L){
+            ToEditAdminInfo info = new ToEditAdminInfo();
 
-        // 前台注册未保存用户表需新增，后台及用户中心注册的则更新用户表信息
-        if (account.getRegisterType() == 0) {
-            Long userId = saveUser(info, 0, true);
+            // 1.查询用户信息
+            User user = selUserById4Ex(userId);
+            info.setAge(user.getAge());
+            info.setDomicile(user.getDomicile());
+            info.setEmail(user.getEmail());
+            info.setIdCard(user.getIdCard());
+            info.setName(user.getName());
+            info.setPhone(user.getPhone());
+            info.setQq(user.getQq());
+            info.setSex(user.getSex());
 
-            // 保存用户账号关联表信息
-            saveUserAccount(userId, info.getAccountId());
-
-            // 用户中心无需保存用户职位关联表
-        } else {
-            // 更新用户表信息
-            editUserInfo(info, account);
+            return info;
+        }else {
+            return null;
         }
     }
 
     @Override
-    public void editInfo(UserInfo info) throws Exception {
-        editUserInfo(info, selAccountById(info.getAccountId()));
+    public void supplement(EditUserInfo info) throws Exception {
+        // 前台注册未保存用户表需新增，后台及用户中心注册的则更新用户表信息
+        if (info.getId() != null && info.getId() > 0L){
+            // 更新用户表信息
+            editUserInfo(info);
+        }else{
+            Long userId = saveUser(info, 0, true);
+
+            // 保存用户账号关联表信息（用户中心无需保存用户职位关联表）
+            saveUserAccount(userId, info.getAccountId());
+        }
     }
 
     @Override
     public Long addOperator(AddOperatorInfo info) throws Exception {
-        // 保存账号
-        Long accId = saveAccount(info.getUsername(), "", 0, 2);
+        AccountName name = accountNameService.selectByAccountName(info.getAccountName());
+        if(name != null){
+            throw new BusinessException("对不起，该账号已存在！");
+        }
 
-        // 保存账号密码表
-        saveAccPwd(accId, info.getPassword(), info.getUsername());
+        // 保存账号
+        Long accId = saveAccount(info.getAccountName(), info.getPassword(), 0, 2);
+
+        // 保存账号名称表
+        saveAccName(accId, info.getAccountName());
 
         // 保存用户表信息
         Long userId = saveUser(info, 0, false);
@@ -134,7 +165,7 @@ public class UserBizImpl implements UserBiz {
 
         PagerResult<User> userPagerResult = userService.selectPager(info);
         if (userPagerResult != null && userPagerResult.getData() != null){
-            result.setData(usersToInfos(userPagerResult.getData()));
+            result.setData(EntityToModelUtils.entitysToInfos(userPagerResult.getData(), UserInfo.class));
             result.setTotal(userPagerResult.getTotal());
         }
 
@@ -142,37 +173,49 @@ public class UserBizImpl implements UserBiz {
     }
 
     @Override
-    public UserDetailInfo userDetail(Long userId) throws Exception {
+    public UserDetailInfo userDetail(Long userId, Integer type) throws Exception {
         UserDetailInfo userDetailInfo = new UserDetailInfo();
 
         // 1.查询用户信息
-        User user = selUserById(userId);
+        User user = selUserById4Ex(userId);
+        validateUserType(type, user.getTyp());
 
         // 2.查询账号信息
-//        Account account = selAccountByUserId(user.getId());
+        List<Account> accounts = selAccountByUserId(user.getId());
 
         // 3.查询用户所属公司及部门信息
         Map<Long, Group> groupMap = selGroupByUserId(user.getId());
 
-        // 4.查询账号已赋角色信息
-//        List<Role> roles = selByAccountId(account.getId());
+        // 4.将账号entity转为Info的同时获取对应的子账号、角色
+        List<AccountListInfo> accountInfos = EntityToModelUtils.entitysToInfos(accounts, AccountListInfo.class);
+        for (AccountListInfo info : accountInfos){
+            if (info != null){
+                // 查询账号对应的角色
+                List<Role> roles = selRolesByAccountId(info.getId());
+                info.setRoleInfos(EntityToModelUtils.entitysToInfos(roles, RoleInfo.class));
 
-        userDetailInfo.setUser(userToInfo(user));
-//        userDetailInfo.setAccount(accountToInfo(account));
+                // 查询所有账号名
+                List<AccountName> accountNames = accountNameService.selectByAccountId(info.getId());
+                info.setAccounNameInfos(EntityToModelUtils.entitysToInfos(accountNames, AccountNameInfo.class));
+            }
+        }
+
+        userDetailInfo.setAccounts(accountInfos);
+        userDetailInfo.setUser(EntityToModelUtils.entityToInfo(user, new UserInfo()));
         userDetailInfo.setGroups(groupMap);
-//        userDetailInfo.setGiveRoles(rolesToInfos(roles));
 
         return userDetailInfo;
     }
 
     @Override
-    public Long addSysUser(AddSysUserInfo info) throws Exception {
+    public Long addSysUser(AddAdminInfo info) throws Exception {
         // 保存账号
-        Long accId = saveAccount(info.getAccountName(), info.getMobile(), info.getManagerType(), 1);
-
-        // 保存账号密码表
         String pwd = RandomUtil.randomChar();
-        saveAccPwd(accId, pwd, info.getAccountName());
+
+        Long accId = saveAccount(info.getAccountName(), pwd, info.getManagerType(), 1);
+
+        // 保存账号名称表
+        saveAccName(accId, info.getAccountName());
 
         // TODO 发送密码至手机
 
@@ -196,41 +239,22 @@ public class UserBizImpl implements UserBiz {
 
     @Override
     public void add2Group(Long groupId, Long userId) throws Exception {
+        User user = selUserById4Ex(userId);
+        user.setTyp(2); // 用户类型（0非内部用户 1内部用户 2内部用户兼外部用户）
+
+        userService.updateByPk(userId, user);
+
         saveGroupUser(groupId, userId);
     }
 
     @Override
-    public UserDetailInfo getUserAuthorize(Long userId) throws Exception {
-        UserDetailInfo info = userDetail(userId);
-        info.setRoles(rolesToInfos(roleService.select()));
-
-        return info;
-    }
-
-    @Override
-    public void userAuthorize(SaveUserAuthorizeInfo info) throws Exception {
-        selUserById(info.getUserId());
-
-        if (info.getAccountId() == null || info.getAccountId() == 0L) {
-            // 查询账号关联表获取账号ID
-            UserAccount userAccount = selUserAccByUserIdAndAccId(info.getUserId(), info.getAccountId());
-
-            info.setAccountId(userAccount.getAccountId());
-        }
-
-        // 删除账号角色关联表
-        accountRoleService.deleteByAccountId(info.getAccountId());
-
-        // 重新保存账号角色关联表
-        saveAccountRoles(info.getAccountId(), info.getRoleIds());
-    }
-
-    @Override
-    public ToEditSysUserInfo toEditUser(Long userId) throws Exception {
-        ToEditSysUserInfo info = new ToEditSysUserInfo();
+    public ToEditAdminInfo toEditSysUser(Long userId) throws Exception {
+        ToEditAdminInfo info = new ToEditAdminInfo();
 
         // 1.查询用户信息
-        User user = selUserById(userId);
+        User user = selUserById4Ex(userId);
+        validateUserType(1, user.getTyp());
+
         info.setAge(user.getAge());
         info.setDomicile(user.getDomicile());
         info.setEmail(user.getEmail());
@@ -240,7 +264,7 @@ public class UserBizImpl implements UserBiz {
         info.setQq(user.getQq());
         info.setSex(user.getSex());
 
-        // 2.查询账号已赋部门信息
+        // 2.查询账号已赋部门信息(所有部门信息通过重新调用部门查询接口获取)
         List<GroupUser> groupUsers = groupUserService.selectByUserId(userId);
         info.setDeptIds(BeanUtils.getPropertyValues2List(groupUsers, "id"));
 
@@ -248,11 +272,9 @@ public class UserBizImpl implements UserBiz {
     }
 
     @Override
-    public void editSysUser(EditSysUserInfo info) throws Exception {
-        User user = selUserById(info.getId());
-
-        // 更新账号
-        updateSysUserAccount(info);
+    public void editSysUser(EditAdminInfo info) throws Exception {
+        User user = selUserById4Ex(info.getId());
+        validateUserType(1, user.getTyp());
 
         // 更新用户信息
         updateSysUserInfo(user, info);
@@ -266,30 +288,14 @@ public class UserBizImpl implements UserBiz {
             userPositionService.updateByPk(position.getId(), position);
         }
 
-        List<GroupUser> groupUsers = groupUserService.selectByUserId(user.getId());
-        if (groupUsers != null && groupUsers.size() > 0) {
-            List<Long> exitIds = BeanUtils.getPropertyValues2List(groupUsers, "id");
-            if (!StringUtils.isNullOrEmpty(info.getDeptIds())) {
-                // 将字符串转为List
-                String[] ids = info.getDeptIds().split(",");
-                List<Long> currenIdList = new ArrayList<>();
-                for (String id : ids) {
-                    currenIdList.add(Long.valueOf(id));
-                }
+        // 删除组用户关联表（与部门、公司关联）
+        groupUserService.deleteByUserId(info.getId());
 
-                // 删除组用户关联表（与部门关联）
-                delGroupUserByIds(filterNotExitIds(currenIdList, exitIds));
+        // 重新保存组用户关联表（与公司关联）
+        saveGroupUser(info.getGroupId(), user.getId());
 
-                // 保存新的组用户关联表（与部门关联）
-                saveGroupUsers(user.getId(), filterNotExitIds(currenIdList, exitIds));
-            }
-        } else {
-            // 保存组用户关联表（与公司关联）
-            saveGroupUser(info.getGroupId(), user.getId());
-
-            // 保存组用户关联表（与部门关联）
-            saveGroupUsers(user.getId(), info.getDeptIds());
-        }
+        // 重新保存组用户关联表（与部门关联）
+        saveGroupUsers(user.getId(), info.getDeptIds());
     }
 
     @Override
@@ -304,7 +310,7 @@ public class UserBizImpl implements UserBiz {
 
         PagerResult<User> userPagerResult = userService.selectPager(info);
         if (userPagerResult != null && userPagerResult.getData() != null){
-            result.setData(usersToInfos(userPagerResult.getData()));
+            result.setData(EntityToModelUtils.entitysToInfos(userPagerResult.getData(), UserInfo.class));
             result.setTotal(userPagerResult.getTotal());
         }
 
@@ -313,7 +319,7 @@ public class UserBizImpl implements UserBiz {
 
     @Override
     public void disableUser(Long id) throws Exception {
-        User user = selUserById(id);
+        User user = selUserById4Ex(id);
         user.setState(1);
 
         userService.updateByPk(user.getId(), user);
@@ -321,7 +327,7 @@ public class UserBizImpl implements UserBiz {
 
     @Override
     public void unDisableUser(Long id) throws Exception {
-        User user = selUserById(id);
+        User user = selUserById4Ex(id);
         user.setState(0);
 
         userService.updateByPk(user.getId(), user);
@@ -338,110 +344,43 @@ public class UserBizImpl implements UserBiz {
     }
 
     @Override
-    public void addManager(Long groupId, Long accountId) throws Exception{
-        Account account = selAccountById(accountId);
+    public ToEditOperatorInfo toEditOperator(Long userId, Long accountId)throws Exception{
+        Account account = selAccountById4Ex(accountId);
+        User user = selUserById4Ex(userId);
 
-        List<OperatorListInfo> operatorListInfos = assemblyOperatorInfo(groupId, 1);
-        if (operatorListInfos != null && operatorListInfos.size() > 0){
-            for (OperatorListInfo info : operatorListInfos){
-                if (info != null && info.getMaster() == 1){
-                    throw new BusinessException("对不起，用户名为：" + info.getUsername() + "已经被授权管理员，不能重复操作！");
-                }
-            }
-        }
+        List<AccountRole> accountRoles = accountRoleService.selectByAccountId(accountId);
+        List<Long> ids = BeanUtils.getPropertyValues2List(accountRoles, "roleId");
 
-        account.setMaster(1);
+        ToEditOperatorInfo info = new ToEditOperatorInfo();
+        info.setAccountName(account.getAccountName());
+        info.setAccountId(account.getId());
+        info.setName(user.getName());
+        info.setGivenRoleIds(ids);
 
-        accountService.updateByPk(accountId, account);
-    }
-
-    @Override
-    public UserDetailInfo toSysUserAuthorize(Long userId, Long accountId) throws Exception {
-        UserDetailInfo userDetailInfo = new UserDetailInfo();
-
-        // 1.查询用户信息
-        User user = selUserById(userId);
-
-        // 2.查询账号信息
-        Account account = selAccountByUserIdAndAccId(user.getId(), accountId);
-
-        // 3.查询账号已赋角色信息
-        List<Role> roles = selByAccountId(account.getId());
-
-        // TODO 4.查询所有可控组角色信息
-
-        userDetailInfo.setUser(userToInfo(user));
-//        userDetailInfo.setAccount(accountToInfo(account));
-        userDetailInfo.setGiveRoles(rolesToInfos(roles));
-
-        return userDetailInfo;
-    }
-
-    /**
-     * 根据用户ID集合查询用户信息，并按用户账号关联表中的主键ID进行分组
-     *
-     * @param userIds      用户ID集合
-     * @param userAccounts 用户关联表集合
-     * @return Map<Long   ,       User>(key为用户关联表主键ID，value为用户对象信息)
-     */
-    private Map<String, User> searchUsers(List<Long> userIds, List<UserAccount> userAccounts) throws Exception {
-        if (userIds != null && userIds.size() > 0){
-            // 根据用户ID集合查询用户信息
-            UserQuery query = new UserQuery();
-            query.setIds(userIds);
-
-            List<User> users = userService.select(query);
-
-            return CommonUtils.assembly2Map(users, userAccounts, "id", "userId");
-        }else {
-            return null;
-        }
-    }
-
-    private Map<String, Account> searchAccounts(List<UserAccount> userAccounts){
-        // 将账号ID组装至集合中
-        List<Long> accIds = CommonUtils.getPropertyValues2List(userAccounts, "accountId");
-        // 根据用户ID集合查询对应的用户账号信息
-        if (accIds != null && accIds.size() > 0) {
-            AccountQuery query = new AccountQuery();
-            query.setIds(accIds);
-
-            List<Account> accounts = accountService.select(query);
-
-            return CommonUtils.assembly2Map(accounts, userAccounts, "id", "accountId");
-        }
-
-        return null;
+        return info;
     }
 
     /**
      * 更新用户信息
-     *
      * @param info    页面传入用户信息参数
-     * @param account 账号信息对象
      */
-    private void editUserInfo(UserInfo info, Account account) throws Exception {
-        // TODO
-        // 如果填写了手机需验证短信验证码
+    private void editUserInfo(EditUserInfo info){
+        User user = selUserById4Ex(info.getId());
 
-        User user = selUserById(info.getId());
-        if (!user.getIsSupplement()) {
-            // 如果填写了手机更新账号表中的登录账号信息
-            if (!StringUtils.isNullOrEmpty(info.getAccount())) {
-                account.setAccountName(info.getAccount());
-
-                accountService.updateByPk(info.getAccountId(), account);
-            }
-
-            // 更新用户信息
-            user.setName(info.getName());
-            user.setQq(info.getQq());
-            user.setEmail(info.getEmail());
-            user.setPhone(info.getPhone());
+        // 更新用户信息
+        user.setName(info.getName());
+        user.setQq(info.getQq());
+        user.setEmail(info.getEmail());
+        user.setPhone(info.getPhone());
+        user.setAge(info.getAge());
+        user.setSex(info.getSex());
+        user.setDomicile(info.getDomicile());
+        user.setIdCard(info.getIdCard());
+        if (!user.getIsSupplement()){
             user.setIsSupplement(true);
-
-            userService.updateByPk(user.getId(), user);
         }
+
+        userService.updateByPk(user.getId(), user);
     }
 
     /**
@@ -482,14 +421,15 @@ public class UserBizImpl implements UserBiz {
      * 组装保存账号需要的信息并返回
      *
      * @param username     用户名
-     * @param mobile       账号
+     * @param pwd           密码
      * @param managerType  管理员类别(0普通管理员 1超级管理员)
      * @param registerType 注册类型（0前台注册 1后台创建 2用户中心创建）
      * @return Long
      */
-    private Long saveAccount(String username, String mobile, Integer managerType, Integer registerType) throws Exception {
+    private Long saveAccount(String username, String pwd, Integer managerType, Integer registerType) throws Exception {
         Account acc = new Account();
         acc.setAccountName(username);
+        acc.setPassword(pwd);
         acc.setCreateTime(new Date());
         acc.setManagerType(managerType);
         acc.setMaster(0);
@@ -516,18 +456,16 @@ public class UserBizImpl implements UserBiz {
     }
 
     /**
-     * 组装账号密码对象信息并返回
-     *
+     * 保存账号名称对象信息并返回
      * @param accountId 账号ID
-     * @param pwd       密码
      * @param username  用户名
      */
-    private void saveAccPwd(Long accountId, String pwd, String username) throws Exception {
+    private void saveAccName(Long accountId, String username) throws Exception {
         AccountName accPwd = new AccountName();
         accPwd.setAccountId(accountId);
         accPwd.setAccountName(username);
 
-        accountPasswordService.insert(accPwd);
+        accountNameService.insert(accPwd);
     }
 
     /**
@@ -552,7 +490,6 @@ public class UserBizImpl implements UserBiz {
 
     /**
      * 保存组用户关联表
-     *
      * @param userId   用户ID
      * @param groupsId 组ID集合
      */
@@ -562,33 +499,6 @@ public class UserBizImpl implements UserBiz {
             String[] ids = groupsId.split(",");
             for (String id : ids) {
                 saveGroupUser(Long.valueOf(id), userId);
-            }
-        }
-    }
-
-    /**
-     * 删除组用户关联表
-     *
-     * @param ids 组用户关联表主键ID集合
-     */
-    private void delGroupUserByIds(List<Long> ids){
-        if (!StringUtils.isNullOrEmpty(ids)) {
-            for (Long id : ids) {
-                groupUserService.deleteByPk(id);
-            }
-        }
-    }
-
-    /**
-     * 删除组用户关联表
-     *
-     * @param groupsId 组ID集合
-     */
-    private void saveGroupUsers(Long userId, List<Long> groupsId) throws Exception {
-        // 保存账号角色关联表
-        if (!StringUtils.isNullOrEmpty(groupsId)) {
-            for (Long id : groupsId) {
-                saveGroupUser(id, userId);
             }
         }
     }
@@ -619,7 +529,7 @@ public class UserBizImpl implements UserBiz {
      * @param user 源信息
      * @param info 修改信息
      */
-    private void updateSysUserInfo(User user, EditSysUserInfo info) {
+    private void updateSysUserInfo(User user, EditAdminInfo info) {
         // 更新用户信息
         user.setName(info.getName());
         user.setQq(info.getQq());
@@ -629,23 +539,11 @@ public class UserBizImpl implements UserBiz {
         user.setSex(info.getSex());
         user.setDomicile(info.getDomicile());
         user.setIdCard(info.getIdCard());
-        user.setIsSupplement(true);
+        if (!user.getIsSupplement()){
+            user.setIsSupplement(true);
+        }
 
         userService.updateByPk(user.getId(), user);
-    }
-
-    /**
-     * 更新系统用户账号
-     *
-     * @param info 系统用户信息
-     */
-    private void updateSysUserAccount(EditSysUserInfo info) throws Exception {
-        Account account = selAccountByUserIdAndAccId(info.getId(), info.getAccountId());
-        if (!account.getAccountName().equals(info.getAccount())) {
-            account.setAccountName(info.getAccount());
-
-            accountService.updateByPk(account.getId(), account);
-        }
     }
 
     /**
@@ -714,13 +612,13 @@ public class UserBizImpl implements UserBiz {
 
             parent.setChildrenList(sons);
         }else{
-            if (son.getPid() == parent.getId()){
+            if (son.getPid().equals(parent.getId())){
                 sons.add(son);
 
                 parent.setChildrenList(sons);
             }else {
                 for (Group sonG : sons){
-                    if (son.getPid() == sonG.getId()){
+                    if (son.getPid().equals(sonG.getId())){
                         addChildToParent(son, sonG);
                     }
                 }
@@ -730,119 +628,51 @@ public class UserBizImpl implements UserBiz {
 
     /**
      * 根据账号ID查询角色信息
-     *
      * @param accountId 账号ID
      * @return List<Role>
      */
-    private List<Role> selByAccountId(Long accountId) {
+    private List<Role> selRolesByAccountId(Long accountId) {
         List<AccountRole> accountRoles = accountRoleService.selectByAccountId(accountId);
         List<Long> roleIds = BeanUtils.getPropertyValues2List(accountRoles, "roleId");
-        if (roleIds != null && roleIds.size() > 0){
 
+        return selByIds(roleIds);
+    }
+
+    private List<Role> selByIds(List<Long> ids){
+        if (ids != null && ids.size() > 0){
             RoleQuery roleQuery = new RoleQuery();
-            roleQuery.setIds(roleIds);
+            roleQuery.setIds(ids);
 
             return roleService.select(roleQuery);
         }else {
             return null;
         }
     }
-
-    /**
-     * 过滤出在源数据里面不存在的ID
-     *
-     * @param source 源数据
-     * @param target 需过滤的数据
-     * @return List<Long>
-     */
-    private List<Long> filterNotExitIds(List<Long> source, List<Long> target) {
-        List<Long> ids = new ArrayList<>();
-        for (Long id : target) {
-            Boolean isExit = false;
-            for (Long exitId : source) {
-                if (Objects.equals(id, exitId)) {
-                    isExit = true;
-                }
-            }
-
-            if (!isExit) {
-                ids.add(id);
-            }
-        }
-
-        return ids;
-    }
-
-    /**
-     * 角色集合entity转为info集合
-     * @param roles 角色集合entity
-     * @return List<RoleInfo>
-     */
-    private List<RoleInfo> rolesToInfos(List<Role> roles){
-        List<RoleInfo> infos = new ArrayList<>();
-        if (roles != null && roles.size() > 0){
-            for (Role role : roles){
-                if (role != null){
-                    infos.add(roleToInfo(role));
-                }
-            }
-        }
-
-        return infos;
-    }
-    /**
-     * 角色entity转为info
-     * @param role 角色对象
-     * @return RoleInfo
-     */
-    private RoleInfo roleToInfo(Role role){
-        RoleInfo info = new RoleInfo();
-        BeanUtils.copyProperties(role, info);
-
-        return info;
-    }
-
-    /**
-     * 用户集合entity转为info集合
-     * @param users 用户Entity集合
-     * @return List<RoleInfo>
-     */
-    private List<UserInfo> usersToInfos(List<User> users){
-        List<UserInfo> infos = new ArrayList<>();
-        if (users != null && users.size() > 0){
-            for (User user : users){
-                if (user != null){
-                    infos.add(userToInfo(user));
-                }
-            }
-        }
-
-        return infos;
-    }
-
-    /**
-     * 用户entity转为info
-     * @param user 用户对象
-     * @return UserInfo
-     */
-    private UserInfo userToInfo(User user){
-        UserInfo info = new UserInfo();
-        BeanUtils.copyProperties(user, info);
-
-        return info;
-    }
-
-    /**
-     * 账号entity转为info
-     * @param account 账号对象
-     * @return AccountInfo
-     */
-    private AccountInfo accountToInfo(Account account){
-        AccountInfo info = new AccountInfo();
-        BeanUtils.copyProperties(account, info);
-
-        return info;
-    }
+//
+//    /**
+//     * 过滤出在源数据里面不存在的ID
+//     *
+//     * @param source 源数据
+//     * @param target 需过滤的数据
+//     * @return List<Long>
+//     */
+//    private List<Long> filterNotExitIds(List<Long> source, List<Long> target) {
+//        List<Long> ids = new ArrayList<>();
+//        for (Long id : target) {
+//            Boolean isExit = false;
+//            for (Long exitId : source) {
+//                if (Objects.equals(id, exitId)) {
+//                    isExit = true;
+//                }
+//            }
+//
+//            if (!isExit) {
+//                ids.add(id);
+//            }
+//        }
+//
+//        return ids;
+//    }
 
     /**
      * 是否要查询角色信息
@@ -854,44 +684,31 @@ public class UserBizImpl implements UserBiz {
         List<OperatorListInfo> infoList = new ArrayList<>();
 
         // 1.查询组用户关联表获取组下所有用户信息
-        GroupUserQuery groupUserQuery = new GroupUserQuery();
-        groupUserQuery.setGroupId(groupId);
-
-        List<GroupUser> groupUsers = groupUserService.select(groupUserQuery);
+        List<GroupUser> groupUsers = selGroupUsersByGroupId(groupId);
         if (groupUsers != null && groupUsers.size() > 0) {
             // 将用户ID组装至集合中
-            List<Long> userIds = CommonUtils.getPropertyValues2List(groupUsers, "userId");
+            List<Long> userIds = BeanUtils.getPropertyValues2List(groupUsers, "userId");
             if (userIds.size() > 0) {
                 // 2.根据用户ID集合查询用户账号关联表信息
-                UserAccountQuery userAccountQuery = new UserAccountQuery();
-                userAccountQuery.setUserIds(userIds);
-
-                List<UserAccount> userAccounts = userAccountService.select(userAccountQuery);
+                List<UserAccount> userAccounts = selByUserIds(userIds);
                 if (userAccounts != null && userAccounts.size() > 0) {
-                    // 3.根据账号ID集合查询对应的用户账号信息
-                    Map<String, Account> accountMap = searchAccounts(userAccounts);
+                    // 将账号ID组装至集合中
+                    List<Long> accIds = BeanUtils.getPropertyValues2List(userAccounts, "accountId");
 
-                    // 4.根据用户ID集合查询用户信息
-                    Map<String, User> userMap = searchUsers(userIds, userAccounts);
+                    List<Account> accounts = selAccsByAccountIds(accIds);
+
+                    // 5.将用户和账号信息进行匹配并返回
+                    infoList = groupUserAndAcc(accounts, userAccounts, userIds, groupId);
 
                     if (type == 0){
-                        // TODO 查询角色权限
-                    }
-                    // 5.将用户和账号信息进行匹配并返回
-                    for (String id : userMap.keySet()) {
-                        if (id != null) {
-                            OperatorListInfo userInfo = new OperatorListInfo();
-                            userInfo.setGroupId(groupId);
-                            if (accountMap != null && accountMap.get(id) != null) {
-                                Account acc = accountMap.get(id);
-                                userInfo.setAccountId(acc.getId());
-                                BeanUtils.copyProperties(acc, userInfo);
-                            }
-                            if (userMap != null && userMap.get(id) != null) {
-                                BeanUtils.copyProperties(userMap.get(id), userInfo);
-                            }
+                        // 循环infoList，将角色信息加入
+                        Map<Long, List<Role>> roleMap = groupAccAndRole(accounts, accIds);
+                        if (infoList.size() > 0 && roleMap.size() > 0){
+                            for (OperatorListInfo info : infoList){
+                                List<Role> roles = roleMap.get(info.getAccountId());
 
-                            infoList.add(userInfo);
+                                info.setRoles(EntityToModelUtils.entitysToInfos(roles, RoleInfo.class));
+                            }
                         }
                     }
                 }
@@ -902,13 +719,172 @@ public class UserBizImpl implements UserBiz {
     }
 
     /**
-     * 根据主键ID查询用户信息，并抛出不存在异常
+     * 将账号及对应角色进行组装并返回
+     * @param accIds    账号ID集合(为了查询账号角色表以获取角色信息)
+     * @return Map<Long, List<Role>> key为账号主键ID，value为账号对应的角色集合
+     * @throws Exception
+     */
+    private Map<Long, List<Role>> groupAccAndRole(List<Account> accounts, List<Long> accIds)throws Exception{
+        Map<Long, List<Role>> infoList = new HashMap<>();
+
+        List<AccountRole> accountRoles = selByAccRolesAcctIds(accIds);
+
+        // TODO CommonUtils改为BeanUtils
+        // 3.根据账号ID集合查询对应的用户账号信息（用户账号关联表主键ID为key）
+        Map<String, Account> accountMap = CommonUtils.assembly2Map(accounts, accountRoles, "id", "accountId");
+
+        // 4.根据账号ID集合查询角色信息（账号角色关联表主键ID为key）
+        List<Long> roleIds = BeanUtils.getPropertyValues2List(accountRoles, "roleId");
+        Map<String, Role> roleMap = searchRoles(roleIds, accountRoles);
+
+        // 5.将角色添加至对应的账号信息中
+        for (String id : roleMap.keySet()) {
+            if (id != null) {
+                if (accountMap != null && accountMap.get(id) != null) {
+                    Account account = accountMap.get(id);
+                    List<Role> roles = infoList.get(account.getId());
+                    if (roles == null){
+                        roles = new ArrayList<>();
+                    }
+
+                    if (roleMap.get(id) != null) {
+                        Role role = roleMap.get(id);
+
+                        roles.add(role);
+                    }
+
+                    infoList.put(account.getId(), roles);
+                }
+            }
+        }
+
+        return infoList;
+    }
+
+    /**
+     * 将用户及对应账号进行组装并返回
+     * @param accounts  账号信息，为了与用户进行关联
+     * @param userAccounts  用户账号关联表集合数据
+     * @param userIds   用户ID集合(为了查询用户数据)
+     * @param groupId   公司ID
+     * @return List<OperatorListInfo>
+     * @throws Exception
+     */
+    private List<OperatorListInfo> groupUserAndAcc(List<Account> accounts, List<UserAccount> userAccounts, List<Long> userIds, Long groupId)throws Exception{
+        List<OperatorListInfo> infoList = new ArrayList<>();
+
+        // 3.根据账号ID集合查询对应的用户账号信息（用户账号关联表主键ID为key）
+        Map<String, Account> accountMap = searchAccounts(accounts, userAccounts);
+
+        // 4.根据用户ID集合查询用户信息（用户账号关联表主键ID为key）
+        Map<String, User> userMap = searchUsers(userIds, userAccounts);
+
+        // 5.将用户和账号信息进行匹配并返回
+        for (String id : userMap.keySet()) {
+            if (id != null) {
+                OperatorListInfo userInfo = new OperatorListInfo();
+                userInfo.setGroupId(groupId);
+                if (accountMap != null && accountMap.get(id) != null) {
+                    Account acc = accountMap.get(id);
+                    userInfo.setAccountId(acc.getId());
+                    userInfo.setState(acc.getState());
+                    userInfo.setAccountName(acc.getAccountName());
+                    userInfo.setIsLock(acc.getIsLock());
+                    userInfo.setLockTimes(acc.getLockTimes());
+                    userInfo.setMaster(acc.getMaster());
+                }
+                if (userMap.get(id) != null) {
+                    User user = userMap.get(id);
+                    userInfo.setName(user.getName());
+                    userInfo.setUserId(user.getId());
+                    userInfo.setIsSupplement(user.getIsSupplement());
+                }
+
+                infoList.add(userInfo);
+            }
+        }
+
+        return infoList;
+    }
+
+    /**
+     * 根据角色ID集合查询角色信息，并按角色关联表中的主键ID进行分组
      *
+     * @param roleIds      角色ID集合
+     * @param accountRoles 角色关联表集合
+     * @return Map<Long   ,       Role>(key为角色关联表主键ID，value为角色对象信息)
+     */
+    private Map<String, Role> searchRoles(List<Long> roleIds, List<AccountRole> accountRoles) throws Exception {
+        List<Role> roles = selByIds(roleIds);
+        if (roles != null && roles.size() > 0){
+            // TODO CommonUtils改为BeanUtils
+            return CommonUtils.assembly2Map(roles, accountRoles, "id", "roleId");
+        }else {
+            return null;
+        }
+    }
+
+    /**
+     * 根据用户ID集合查询用户信息，并按用户账号关联表中的主键ID进行分组
+     *
+     * @param userIds      用户ID集合
+     * @param userAccounts 用户关联表集合
+     * @return Map<Long   ,       User>(key为用户关联表主键ID，value为用户对象信息)
+     */
+    private Map<String, User> searchUsers(List<Long> userIds, List<UserAccount> userAccounts) throws Exception {
+        if (userIds != null && userIds.size() > 0){
+            // 根据用户ID集合查询用户信息
+            UserQuery query = new UserQuery();
+            query.setIds(userIds);
+
+            List<User> users = userService.select(query);
+
+            return CommonUtils.assembly2Map(users, userAccounts, "id", "userId");
+        }else {
+            return null;
+        }
+    }
+
+    private Map<String, Account> searchAccounts(List<Account> accounts, List<UserAccount> userAccounts){
+        // 根据两个对象中相同属性进行匹配，然后将中间表的主键ID作为key，主表对象作为value进行组装并返回
+        return CommonUtils.assembly2Map(accounts, userAccounts, "id", "accountId");
+    }
+
+    private List<Account> selAccsByAccountIds(List<Long> accIds){
+        AccountQuery accountQuery = new AccountQuery();
+        accountQuery.setIds(accIds);
+
+        return accountService.select(accountQuery);
+    }
+
+    private List<AccountRole> selByAccRolesAcctIds(List<Long> accIds){
+        AccountRoleQuery roleQuery = new AccountRoleQuery();
+        roleQuery.setAccountIds(accIds);
+
+        return accountRoleService.select(roleQuery);
+    }
+
+    private List<GroupUser> selGroupUsersByGroupId(Long groupId){
+        GroupUserQuery groupUserQuery = new GroupUserQuery();
+        groupUserQuery.setGroupId(groupId);
+
+        return groupUserService.select(groupUserQuery);
+    }
+
+   private List<UserAccount> selByUserIds(List<Long> userIds){
+        UserAccountQuery userAccountQuery = new UserAccountQuery();
+        userAccountQuery.setUserIds(userIds);
+
+        return userAccountService.select(userAccountQuery);
+    }
+
+    /**
+     * 根据主键ID查询用户信息，并抛出不存在异常
      * @param userId 用户ID
      * @return User
      */
-    private User selUserById(Long userId) throws Exception {
-        User user = userService.selectByPk(userId);
+    private User selUserById4Ex(Long userId){
+        User user = selUserById(userId);
         if (user == null) {
             throw new BusinessException("对不起，未查询到该用户！");
         }
@@ -917,12 +893,20 @@ public class UserBizImpl implements UserBiz {
     }
 
     /**
+     * 根据主键ID查询用户信息
+     * @param userId 用户ID
+     * @return User
+     */
+    private User selUserById(Long userId){
+        return userService.selectByPk(userId);
+    }
+
+    /**
      * 根据主键ID查询账号信息
-     *
      * @param accountId 主键ID
      * @return Account
      */
-    private Account selAccountById(Long accountId) throws Exception {
+    private Account selAccountById4Ex(Long accountId){
         Account account = accountService.selectByPk(accountId);
         if (account == null) {
             throw new BusinessException("对不起，未查询到该账号！");
@@ -932,33 +916,33 @@ public class UserBizImpl implements UserBiz {
     }
 
     /**
-     * 根据用户ID+账号ID查询账号信息
+     * 根据用户ID查询用户账号关联表
      * @param userId 用户ID
-     * @param accountId 账号ID
-     * @return Account
+     * @return List<Account>
      */
-    private Account selAccountByUserIdAndAccId(Long userId, Long accountId) throws Exception {
-        UserAccount userAccount = selUserAccByUserIdAndAccId(userId, accountId);
+    private List<Account> selAccountByUserId(Long userId){
+        List<UserAccount> accounts = userAccountService.selectByUserId(userId);
+        List<Long> ids = BeanUtils.getPropertyValues2List(accounts, "accountId");
+        if (ids != null && ids.size() > 0){
+            AccountQuery accountQuery = new AccountQuery();
+            accountQuery.setIds(ids);
 
-        return selAccountById(userAccount.getAccountId());
+            return accountService.select(accountQuery);
+        }
+
+        return null;
     }
 
     /**
-     * 根据用户ID+账号ID查询用户账号关联表信息
-     * @param userId 用户ID
-     * @param accountId 账号ID
-     * @return UserAccount
+     * 验证查询的用户类型是否跟页面请求的一致
+     * @param type  0查询个人用户，1查询内部用户
+     * @param userType
      */
-    private UserAccount selUserAccByUserIdAndAccId(Long userId, Long accountId){
-        UserAccountQuery userQuery = new UserAccountQuery();
-        userQuery.setUserId(userId);
-        userQuery.setAccountId(accountId);
-
-        UserAccount userAccount = userAccountService.selectSingle(userQuery);
-        if (userAccount == null) {
-            throw new BusinessException("对不起，用户账号关联信息不存在！");
+    private void validateUserType(int type, int userType){
+        if (type == 1 && userType == 0){
+            throw new BusinessException("对不起，该系统用户不存在！");
+        }else if (type == 0 && userType == 1){
+            throw new BusinessException("对不起，该个人用户不存在！");
         }
-
-        return userAccount;
     }
 }

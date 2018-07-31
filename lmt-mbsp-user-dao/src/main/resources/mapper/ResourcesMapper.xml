@@ -17,7 +17,7 @@
     where id = #{id,jdbcType=BIGINT}
   </delete>
 
-    <insert id="insert" parameterType="com.lmt.mbsp.user.entity.resources.Resources">
+    <insert id="insert" parameterType="com.lmt.mbsp.user.entity.resources.Resources" useGeneratedKeys="true" keyProperty="id">
         insert into t_resources (
           id, resources_id, path,uri,name,state, typ, create_time
         )

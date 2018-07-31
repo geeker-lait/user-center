@@ -12,7 +12,7 @@
     delete from t_group_resources
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupResources">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupResources" useGeneratedKeys="true" keyProperty="id">
     insert into t_group_resources (id, icon, name, 
       state, uri)
     values (#{id,jdbcType=BIGINT}, #{icon,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 

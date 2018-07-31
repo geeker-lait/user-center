@@ -11,7 +11,7 @@
     delete from t_member
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.member.Member">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.member.Member" useGeneratedKeys="true" keyProperty="id">
     insert into t_member (id, icon, level, 
       name)
     values (#{id,jdbcType=BIGINT}, #{icon,jdbcType=VARCHAR}, #{level,jdbcType=INTEGER}, 

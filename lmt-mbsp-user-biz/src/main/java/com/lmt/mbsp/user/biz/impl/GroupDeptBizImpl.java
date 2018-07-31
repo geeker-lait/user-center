@@ -13,7 +13,10 @@ import com.lmt.mbsp.user.entity.role.Role;
 import com.lmt.mbsp.user.service.GroupRoleService;
 import com.lmt.mbsp.user.service.GroupService;
 import com.lmt.mbsp.user.service.RoleService;
-import com.lmt.mbsp.user.vo.*;
+import com.lmt.mbsp.user.vo.dept.*;
+import com.lmt.mbsp.user.vo.group.GroupDetailInfo;
+import com.lmt.mbsp.user.vo.group.GroupInfo;
+import com.lmt.mbsp.user.vo.role.RoleInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -42,9 +45,9 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
     }
 
     @Override
-    public List<GroupInfo> selById(Long id) throws Exception{
+    public List<DeptTreeInfo> selById(Long id) throws Exception{
         if (id != null) {
-            return groupToGroupInfos(groupService.selectSonTreeById(id));
+            return deptToDeptInfos(groupService.selectSonTreeById(id));
         }else {
             return null;
         }
@@ -52,9 +55,9 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public List<GroupInfo> selByGradeAndName(Integer grade, String name) throws Exception{
+    public List<GroupInfo> selByGradeAndName(Integer type, String name) throws Exception{
         GroupQuery groupQuery = new GroupQuery();
-        groupQuery.setGrade(grade);
+        groupQuery.setTyp(type);
         groupQuery.setName(name);
 
         return groupToGroupInfos(groupService.select(groupQuery));
@@ -81,26 +84,14 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
     }
 
     @Override
-    public ToAddDeptInfo toAddDept(String parentCode) throws Exception{
-        ToAddDeptInfo addDeptInfo = new ToAddDeptInfo();
+    public List<GroupInfo> toAddDept(Long pid) throws Exception{
+        if (pid != null && pid > 0){
+            Group group = selGroupById(pid, 1);
 
-        if (!StringUtils.isNullOrEmpty(parentCode)){
-
-            // 父部门信息
-            GroupQuery groupQuery = new GroupQuery();
-            groupQuery.setCodes(splitToList(parentCode.substring(1, parentCode.length() - 1), "\\|"));
-            groupQuery.setSortName("code");
-            groupQuery.setSortType(0);
-            groupQuery.setTyp(0);
-            groupQuery.setGrade(1);
-
-            addDeptInfo.setParentInfos(groupToGroupInfos(groupService.select(groupQuery)));
+            return selByCodePath(group.getCodePath());
         }
 
-        // 所有角色信息
-        addDeptInfo.setRoleInfos(roleToRoleInfos(roleService.select()));
-
-        return addDeptInfo;
+        return null;
     }
 
     @Override
@@ -108,18 +99,18 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
         // 验证数据
         checkEx(info);
 
-        Long pid;
+        String code = "";
         if (info.getParentId() != null && info.getParentId() > 0L){
-            pid = info.getParentId();
+            // 获取父级编码
+            Group group = selGroupById(info.getParentId(), 1);
+
+            code = group.getCode();
         }else {
-            pid = info.getGroupId();
+            info.setParentId(info.getGroupId());
         }
 
-        // 获取父级编码
-        Group group = selGroupById(pid, 1);
-
         // 根据当前级别最大code进行+1返回
-        String code = assemblyCurrentCode(groupService.selectMaxCodeByPid(pid), group.getCode());
+        code = assemblyCurrentCode(groupService.selectMaxCodeByPid(info.getParentId()), code);
 
         // 保存部门信息
         long deptId = saveDept(info, code);
@@ -138,24 +129,18 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
         info.setCode(group.getCode());
         info.setId(group.getId());
         info.setName(group.getName());
+        info.setState(group.getState());
         info.setCreateTime(group.getCreateTime());
 
         // 父部门信息
-        GroupQuery groupQuery = new GroupQuery();
-        groupQuery.setCodes(splitToList(group.getCodePath().substring(1, group.getCodePath().length() - 1), "\\|"));
-        groupQuery.setSortName("code");
-        groupQuery.setSortType(0);
-        groupQuery.setTyp(0);
-        groupQuery.setGrade(1);
+        List<String> parentCodes = splitToList(splitCodePath(group.getCodePath()), "\\|");
+        parentCodes.remove(parentCodes.size() - 1);// 移除当前级别的部门信息
 
-        info.setParentInfos(groupToGroupInfos(groupService.select(groupQuery)));
+        info.setParentInfos(selByCodePaths(parentCodes));
 
         // 已赋角色信息
         List<GroupRole> groupRoles = groupRoleService.selectByGroupId(group.getId());
         info.setSelectedRoleIds(BeanUtils.getPropertyValues2List(groupRoles, "roleId"));
-
-        // 所有角色信息
-        info.setRoleInfos(roleToRoleInfos(roleService.select()));
 
         return info;
     }
@@ -166,7 +151,7 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
         Group groupName = selectByGroupIdAndName(group.getGroupId(), info.getName());
 
         // 检测名称是否已经存在
-        if (group.getId() != groupName.getId()){
+        if (groupName != null && group.getId() != groupName.getId()){
             throw new BusinessException("该部门名称已经存在！");
         }
 
@@ -176,28 +161,28 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
         groupService.updateByPk(group.getId(), group);
 
         // 删除部门角色信息
-        groupRoleService.deleteByGroupId(group.getGroupId());
+        groupRoleService.deleteByGroupId(group.getId());
 
         // 重新保存部门角色信息
-        saveGroupRoles(group.getGroupId(), info.getRoleIds());
+        saveGroupRoles(group.getId(), info.getRoleIds());
     }
 
     @Override
     public DeptDetailInfo detailDept(Long id) throws Exception{
         Group group = selGroupById(id, 1);
 
-        DeptDetailInfo detailInfo = new DeptDetailInfo();
-        detailInfo.setDeptInfo(groupToInfo(group));
+        DeptDetailInfo info = new DeptDetailInfo();
+        info.setCode(group.getCode());
+        info.setId(group.getId());
+        info.setName(group.getName());
+        info.setState(group.getState());
+        info.setCreateTime(group.getCreateTime());
 
         // 父部门信息
-        GroupQuery groupQuery = new GroupQuery();
-        groupQuery.setCodes(splitToList(group.getCodePath().substring(1, group.getCodePath().length() - 1), "\\|"));
-        groupQuery.setSortName("code");
-        groupQuery.setSortType(0);
-        groupQuery.setTyp(0);
-        groupQuery.setGrade(1);
+        List<String> parentCodes = splitToList(splitCodePath(group.getCodePath()), "\\|");
+        parentCodes.remove(parentCodes.size() - 1);// 移除当前级别的部门信息
 
-        detailInfo.setParentInfos(groupToGroupInfos(groupService.select(groupQuery)));
+        info.setParentInfos(selByCodePaths(parentCodes));
 
         // 查询组角色关联表
         List<GroupRole> groupRoles = groupRoleService.selectByGroupId(group.getId());
@@ -208,10 +193,10 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
 
         if (roleQuery.getIds().size() > 0){
             List<Role> roleList = roleService.select(roleQuery);
-            detailInfo.setSelectedRoleIds(roleToRoleInfos(roleList));
+            info.setSelectedRoleIds(roleToRoleInfos(roleList));
         }
 
-        return detailInfo;
+        return info;
     }
 
     @Override
@@ -262,8 +247,8 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
     }
 
     @Override
-    public InnerCompanyDetailInfo detailCompany(Long id) throws Exception{
-        InnerCompanyDetailInfo info = new InnerCompanyDetailInfo();
+    public GroupDetailInfo detailCompany(Long id) throws Exception{
+        GroupDetailInfo info = new GroupDetailInfo();
 
         // 当前需修改的公司信息
         GroupInfo group = groupToInfo(selGroupById(id, 0));
@@ -278,6 +263,64 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
         info.setGroupInfo(group);
 
         return info;
+    }
+
+    @Override
+    public void relationSon(Long parentId, String sonName) throws Exception{
+        Group group = selGroupById(parentId, 0);
+        Group sonGroup = groupService.selectByGroupName(sonName);
+        if (sonGroup == null){
+            throw new BusinessException("对不起，子公司名称不存在！");
+        }
+
+        sonGroup.setPid(parentId);
+
+        groupService.updateByPk(sonGroup.getId(), sonGroup);
+    }
+
+    /**
+     * 去除codePath前后“|”
+     * @param codePath codePath
+     * @return
+     */
+    private String splitCodePath(String codePath){
+        return codePath.substring(1, codePath.length() - 1);
+    }
+
+    /**
+     * 根据父级pathcode获取父级信息
+     * @param codePath 父级codepath
+     * @return
+     */
+    private List<GroupInfo> selByCodePath(String codePath){
+        if (!StringUtils.isNullOrEmpty(codePath)){
+            List<String> codes = splitToList(splitCodePath(codePath), "\\|");
+
+            return selByCodePaths(codes);
+        }
+
+        return null;
+    }
+
+    /**
+     * 根据父级pathcode获取父级信息
+     * @param codes 父级编码集合
+     * @return
+     */
+    private List<GroupInfo> selByCodePaths(List<String> codes){
+        if (codes != null && codes.size() > 0) {
+            // 父部门信息
+            GroupQuery groupQuery = new GroupQuery();
+            groupQuery.setCodes(codes);
+            groupQuery.setSortName("code");
+            groupQuery.setSortType(0);
+            groupQuery.setTyp(0);
+            groupQuery.setGrade(1);
+
+            return groupToGroupInfos(groupService.select(groupQuery));
+        }
+
+        return null;
     }
 
     /**
@@ -452,6 +495,30 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
 
     /**
      * 递归将子数据对象进行转换为info返回
+     * @param groups 部门信息
+     * @return List<DeptTreeInfo>
+     */
+    private List<DeptTreeInfo> deptToDeptInfos(List<Group> groups){
+        List<DeptTreeInfo> groupInfos = new ArrayList<>();
+        if (groups != null && groups.size() > 0){
+            for (Group group : groups){
+                if (group != null){
+                    DeptTreeInfo info = deptToInfo(group);
+
+                    if (group.getChildrenList() != null && group.getChildrenList().size() > 0){
+                        info.setChildren(deptToDeptInfos(group.getChildrenList()));
+                    }
+
+                    groupInfos.add(info);
+                }
+            }
+        }
+
+        return groupInfos;
+    }
+
+    /**
+     * 将数据对象进行转换为info返回
      * @param groups 公司部门信息
      * @return List<GroupInfo>
      */
@@ -460,13 +527,7 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
         if (groups != null && groups.size() > 0){
             for (Group group : groups){
                 if (group != null){
-                    GroupInfo info = groupToInfo(group);
-
-                    if (group.getChildrenList() != null && group.getChildrenList().size() > 0){
-                        info.setChildren(groupToGroupInfos(group.getChildrenList()));
-                    }
-
-                    groupInfos.add(info);
+                    groupInfos.add(groupToInfo(group));
                 }
             }
         }
@@ -502,6 +563,18 @@ public class GroupDeptBizImpl implements GroupDeptBiz {
      */
     private GroupInfo groupToInfo(Group group){
         GroupInfo info = new GroupInfo();
+        BeanUtils.copyProperties(group, info);
+
+        return info;
+    }
+
+    /**
+     * 将部门对象转为Info对象
+     * @param group 组对象
+     * @return
+     */
+    private DeptTreeInfo deptToInfo(Group group){
+        DeptTreeInfo info = new DeptTreeInfo();
         BeanUtils.copyProperties(group, info);
 
         return info;

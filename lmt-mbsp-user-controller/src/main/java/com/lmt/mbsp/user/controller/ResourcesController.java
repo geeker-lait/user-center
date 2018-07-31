@@ -6,7 +6,7 @@ import com.lmt.framework.support.web.controller.CrudController;
 import com.lmt.mbsp.user.dto.ResourcesQuery;
 import com.lmt.mbsp.user.entity.resources.Resources;
 import com.lmt.mbsp.user.service.ResourcesService;
-import com.lmt.mbsp.user.vo.ResourcesInfo;
+import com.lmt.mbsp.user.vo.resources.ResourcesInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

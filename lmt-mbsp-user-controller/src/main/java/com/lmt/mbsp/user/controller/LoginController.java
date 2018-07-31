@@ -2,7 +2,7 @@ package com.lmt.mbsp.user.controller;
 
 import com.lmt.framework.support.model.message.ResponseMessage;
 import com.lmt.mbsp.user.biz.LoginBiz;
-import com.lmt.mbsp.user.vo.LoginInfo;
+import com.lmt.mbsp.user.vo.account.LoginInfo;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

@@ -4,12 +4,12 @@ import com.lmt.framework.support.model.message.ResponseMessage;
 import com.lmt.framework.support.service.CrudService;
 import com.lmt.framework.support.web.controller.CrudController;
 import com.lmt.mbsp.user.biz.AccountBiz;
-import com.lmt.mbsp.user.biz.LoginBiz;
 import com.lmt.mbsp.user.controller.login.LoginContext;
 import com.lmt.mbsp.user.dto.AccountQuery;
 import com.lmt.mbsp.user.entity.account.Account;
 import com.lmt.mbsp.user.service.AccountService;
-import com.lmt.mbsp.user.vo.*;
+import com.lmt.mbsp.user.vo.account.AccountInfo;
+import com.lmt.mbsp.user.vo.account.*;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +60,13 @@ public class AccountController implements CrudController<Account, Long, AccountQ
         return ok(sms);
     }
 
+    // 用以验证修改密码时填写的旧密码是否正确
+    @GetMapping("/searchPwd")
+    @ApiOperation(value = "查询密码（修改密码校验使用）", responseReference = "get")
+    public ResponseMessage<String> searchCusPassword() throws Exception {
+        return ok(selPwd());
+    }
+
     /****************************************************************************************** 前台 ******************************************************************/
     @PostMapping("/register")
     @ApiOperation(value = "前台-注册", responseReference = "post")
@@ -84,74 +91,11 @@ public class AccountController implements CrudController<Account, Long, AccountQ
         return ok(info);
     }
 
-    /****************************************************************************************** 用户中心 ******************************************************************/
-    @PutMapping("/cs/resetOperatorPwd")
-    @ApiOperation(value = "用户中心-重置操作员密码", responseReference = "put")
-    public ResponseMessage<EditPasswordInfo> resetOperatorPwd(@RequestBody EditPasswordInfo info) throws Exception {
-        // TODO 登录信息获取
-        LoginContext context = LoginContext.getLoginContext();
-        info.setAccountId(context.getAccountId());
-
-        accountBiz.resetOperatorPwd(info);
-
-        return ok(info);
-    }
-
-    @PutMapping("/cs/editPwd")
-    @ApiOperation(value = "用户中心-修改自己密码", responseReference = "put")
-    public ResponseMessage<EditPasswordInfo> editSelfPwd(@RequestBody EditPasswordInfo info) throws Exception {
-        return ok(editPwd(info));
-    }
-
-    // 用以验证修改密码时填写的旧密码是否正确
-    @GetMapping("/cs/searchPwd")
-    @ApiOperation(value = "用户中心-查询密码（修改密码校验使用）", responseReference = "get")
-    public ResponseMessage<String> searchCusPassword() throws Exception {
-        return ok(selPwd());
-    }
-
-    /****************************************************************************************** 后台 ******************************************************************/
-    @PutMapping("/cms/editPwd")
-    @ApiOperation(value = "后台-修改自己密码", responseReference = "put")
-    public ResponseMessage<EditPasswordInfo> editCmsSelfPwd(@RequestBody EditPasswordInfo info) throws Exception {
-        return ok(editPwd(info));
-    }
-
-    @PutMapping("/cms/editSysPwd")
-    @ApiOperation(value = "后台-修改系统用户密码", responseReference = "put")
-    public ResponseMessage<EditPasswordInfo> editCmsSysPwd(@RequestBody EditPasswordInfo info) throws Exception {
-        accountBiz.editPwd(info);
-        return ok(info);
-    }
-
-    @PutMapping("/cms/editUserPwd")
-    @ApiOperation(value = "后台-修改个人用户密码", responseReference = "put")
-    public ResponseMessage<EditPasswordInfo> editCmsUserPwd(@RequestBody EditPasswordInfo info) throws Exception {
-        accountBiz.editPwd(info);
-        return ok(info);
-    }
-
-    @GetMapping("/cms/searchPwd")
-    @ApiOperation(value = "后台-查询密码（修改密码校验使用）", responseReference = "get")
-    public ResponseMessage<String> searchCmsPassword() throws Exception {
-        return ok(selPwd());
-    }
-
     /****************************************************************************************** 私有方法 ******************************************************************/
     private String selPwd() throws Exception {
         // TODO 登录信息获取
         LoginContext context = LoginContext.getLoginContext();
 
         return accountBiz.selectPwd(context.getAccountId());
-    }
-
-    private EditPasswordInfo editPwd(EditPasswordInfo info) throws Exception {
-        // TODO 登录信息获取
-        LoginContext context = LoginContext.getLoginContext();
-        info.setAccountId(context.getAccountId());
-
-        accountBiz.editPwd(info);
-
-        return info;
     }
 }

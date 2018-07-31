@@ -1,6 +1,8 @@
 package com.lmt.mbsp.user.biz;
 
-import com.lmt.mbsp.user.vo.*;
+import com.lmt.mbsp.user.vo.account.*;
+
+import java.util.List;
 
 /**
  * 描述: 账号聚合层.
@@ -48,12 +50,6 @@ public interface AccountBiz {
     void resetPwd(ResetPasswordInfo info) throws Exception;
 
     /**
-     * 重置操作员密码
-     * @param info 查询参数
-     */
-    void resetOperatorPwd(EditPasswordInfo info) throws Exception;
-
-    /**
      * 修改密码
      * @param info 查询参数
      */
@@ -65,4 +61,76 @@ public interface AccountBiz {
      * @return String
      */
     String selectPwd(Long accountId) throws Exception;
+
+    /**
+     * 根据主键ID禁用账号信息
+     * @param id
+     * @throws Exception
+     */
+    void disabled(Long id) throws Exception;
+
+    /**
+     * 根据主键ID激活账号信息
+     * @param id
+     * @throws Exception
+     */
+    void unDisabled(Long id) throws Exception;
+
+    /**
+     * 根据账号名称表主键ID组装进入编辑用户账号页面所需数据
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    ToEditAccountInfo toEditAccount(Long id) throws Exception;
+
+    /**
+     * 修改账号信息
+     * @param info
+     * @throws Exception
+     */
+    void editAccount(EditAccountInfo info) throws Exception;
+
+    /**
+     * 绑定账号信息
+     * @param info
+     * @throws Exception
+     */
+    void bindAcc(BindAccountInfo info) throws Exception;
+
+    /**
+     * 设为超管
+     * @param accountId
+     * @throws Exception
+     */
+    void toSuperAccount(Long accountId) throws Exception;
+
+    /**
+     * 根据账号ID查询该账号下所有账号名称
+     * @param accountId
+     * @return
+     * @throws Exception
+     */
+    List<AccountNameInfo> accList(Long accountId) throws Exception;
+
+    /**
+     * 获取操作员授权信息
+     * @param userId    用户ID
+     * @param accountId 账号ID
+     * @return UserDetailInfo
+     */
+    ToAccountAuthorizeInfo toAuthorize(Long userId, Long accountId) throws Exception;
+
+    /**
+     * 用户授权void
+     * @param info    授权参数
+     */
+    void authorize(SaveAccountAuthorizeInfo info) throws Exception;
+
+    /**
+     * 设置企业商户管理员
+     * @param accountId    账号ID
+     * @throws Exception
+     */
+    void addManager(Long accountId) throws Exception;
 }

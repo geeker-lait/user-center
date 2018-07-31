@@ -17,7 +17,7 @@
     delete from t_url_resources
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.resources.UrlResources">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.resources.UrlResources" useGeneratedKeys="true" keyProperty="id">
     insert into t_url_resources (id, icon, name, 
       state, uri, code,
       parent_code, description, sort, create_time)

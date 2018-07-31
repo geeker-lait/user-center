@@ -13,7 +13,7 @@
     where id = #{id,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.user.UserAccount">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.user.UserAccount" useGeneratedKeys="true" keyProperty="id">
     insert into t_user_account (id, account_id, create_time, 
       user_id)
     values (#{id,jdbcType=BIGINT}, #{accountId,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, 
@@ -67,7 +67,7 @@
       <if test="id != null">AND id = #{id,jdbcType=BIGINT}</if>
       <if test="userId != null">AND user_id = #{userId,jdbcType=BIGINT}</if>
       <if test="accountId != null">AND account_id = #{accountId,jdbcType=BIGINT}</if>
-      <if test="userIds != null">
+      <if test="userIds != null and userIds.size()>0">
         AND
         <foreach collection="userIds" item="id" open="(" close=")" separator="or">
           user_id = #{id}

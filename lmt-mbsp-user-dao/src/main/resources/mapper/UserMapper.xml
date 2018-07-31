@@ -22,7 +22,7 @@
     where id = #{id,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.user.User">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.user.User" useGeneratedKeys="true" keyProperty="id">
     insert into t_user (id, age, create_time,
       domicile, id_card, name,
       sex, state,
@@ -60,7 +60,7 @@
 
   <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.user.User" resultMap="BaseResultMap">
     select <include refid="selFields"/>
-    from t_role
+    from t_user
     where
     <if test="id != null">
       id = #{id,jdbcType=BIGINT}
@@ -89,18 +89,19 @@
   <!--查询参数-->
   <sql id="paramSql">
     <where>
+      <!--1=1 <![CDATA[&nbsp;]]>-->
       <if test="id != null">AND id=#{id,jdbcType=BIGINT}</if>
       <if test="state != null">AND state=#{state,jdbcType=INTEGER}</if>
-      <if test="name != null">AND `name` LIKE '%' #{name,jdbcType=VARCHAR} '%'</if>
+      <if test="name != null">AND `name` LIKE CONCAT('%',#{name,jdbcType=VARCHAR},'%')</if>
       <if test="isSupplement != null">AND is_supplement=#{isSupplement,jdbcType=BOOLEAN} </if>
       <if test="typ != null">AND typ=#{typ,jdbcType=INTEGER} </if>
-      <if test="typs != null">
+      <if test="typs != null and typs.size()>0">
         AND
         <foreach collection="typs" item="typ" open="(" close=")" separator="or">
           typ = #{typ}
         </foreach>
       </if>
-      <if test="ids != null">
+      <if test="ids != null and ids.size()>0">
         AND
         <foreach collection="ids" item="id" open="(" close=")" separator="or">
           id = #{id}

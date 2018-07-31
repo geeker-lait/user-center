@@ -14,7 +14,7 @@
     where id = #{id,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.role.Role">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.role.Role" useGeneratedKeys="true" keyProperty="id">
     insert into t_role (id, icon, name, 
       state, create_time)
     values (#{id,jdbcType=BIGINT}, #{icon,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},

@@ -107,7 +107,7 @@ public class CommonUtils {
                     Method[] ms = obj.getClass().getMethods();
                     for (Method m : ms) {
                         if(("get" + propertyName).toLowerCase().equals(m.getName().toLowerCase())){
-                            V v = getPropertyVal(obj, m, propertyName);
+                            V v = getPropertyVal(obj, propertyName);
 
                             ids.add(v);
                         }
@@ -120,10 +120,10 @@ public class CommonUtils {
     }
 
     /**
-     * 循环对象集合，获取对象中指定属性值添加至Map中并返回，Key为值转为的字符串，Value是实际的值（只适用KEY不重复的属性）
+     * 循环对象集合，获取对象中指定属性值作为key，对象作为value，Key为值转为的字符串（只适用KEY不重复的属性）
      * @param objList 需遍历的对象集合
      * @param propertyName  属性名
-     * @return V
+     * @return V(key:属性值，value:属性对象)
      */
     public static <V> V getPropertyValues2Map(List<?> objList, String propertyName){
         // 组装指定ID集合
@@ -134,9 +134,9 @@ public class CommonUtils {
                     Method[] ms = obj.getClass().getMethods();
                     for (Method m : ms) {
                         if(("get" + propertyName).toLowerCase().equals(m.getName().toLowerCase())){
-                            V v = getPropertyVal(obj, m, propertyName);
+                            V v = getPropertyVal(obj, propertyName);
 
-                            ids.put(v.toString(), v);
+                            ids.put(v.toString(), (V)obj);
                         }
                     }
                 }
@@ -149,12 +149,11 @@ public class CommonUtils {
     /**
      * 获取指定属性名称的属性值
      * @param obj   获取对象
-     * @param m     对象的所有属性方法
      * @param propertyName  属性名称
      * @param <V>
      * @return V
      */
-    private static <V> V getPropertyVal(Object obj, Method m, String propertyName){
+    private static <V> V getPropertyVal(Object obj, String propertyName){
         try {
             Field field = obj.getClass().getDeclaredField(propertyName);
             field.setAccessible(true);//对所有属性设置访问权限  当类中的成员变量为private时 必须设置此项
@@ -185,10 +184,21 @@ public class CommonUtils {
                 if (obj != null){
                     Method[] ms = obj.getClass().getMethods();
                     for (Method m : ms) {
-                        V v = getPropertyVal(obj, m, mainProName);
-                        String vTemp = v.toString();
-                        if (vTemp.equals(middleM.get(vTemp).toString())){
-                            resultMap.put(vTemp, obj);
+                        if(("get" + mainProName).toLowerCase().equals(m.getName().toLowerCase())){
+                            V v = getPropertyVal(obj, mainProName);
+                            String vTemp = v.toString();
+                            if (middleM.get(vTemp) != null){
+                                V middleObj = middleM.get(vTemp);
+                                if (middleObj != null){
+                                    Method[] midMt = middleObj.getClass().getMethods();
+                                    for (Method midM : midMt) {
+                                        if(("get" + mainProName).toLowerCase().equals(midM.getName().toLowerCase())){
+                                            V midValue = getPropertyVal(middleObj, mainProName);
+                                            resultMap.put(midValue.toString(), obj);
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -197,6 +207,40 @@ public class CommonUtils {
 
         return (V)resultMap;
     }
+//
+//    /**
+//     * 根据两个对象中相同属性进行匹配，然后将中间表的主键ID作为key，主表对象作为value进行组装并返回
+//     * @param mainC 主表对象集合
+//     * @param middleC 关联表对象集合
+//     * @param mainProName 主表属性名（例：account表的主键ID）
+//     * @param midProName 中间表属性名（例：accountUser表的accountId）
+//     * @param <V>
+//     * @return V
+//     */
+//    public static <V> V assembly2Map(List<?> mainC, List<?> middleC, String mainProName, String midProName){
+//        // 将主键ID作为key，对象作为value
+//        Map<String, Object> resultMap = new HashMap<String, Object>();
+//        if (mainC != null && mainC.size() > 0
+//                && middleC != null && middleC.size() > 0){
+//            Map<V, V> middleM = getPropertyValues2Map(middleC, midProName);
+//            for (Object obj : mainC){
+//                if (obj != null){
+//                    Method[] ms = obj.getClass().getMethods();
+//                    for (Method m : ms) {
+//                        if(("get" + mainProName).toLowerCase().equals(m.getName().toLowerCase())){
+//                            V v = getPropertyVal(obj, mainProName);
+//                            String vTemp = v.toString();
+//                            if (middleM.get(vTemp) != null && vTemp.equals(middleM.get(vTemp).toString())){
+//                                resultMap.put(vTemp, obj);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        return (V)resultMap;
+//    }
 
 //    public static void main(String[] args) {
 //        User u = new User();

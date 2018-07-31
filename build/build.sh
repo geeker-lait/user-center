@@ -1,2 +1,6 @@
 #!/usr/bin/env bash
-cd  ../lmt-mbsp-user-server && mvn clean install docker:build -DskipTests -amd
+echo '=====update coed from gitlab====='
+git pull
+echo '=====mvn install & docker:build====='
+mvn -f ~/build/user-center/pom.xml clean install -U -DskipTests
+mvn -f ~/build/user-center/lmt-mbsp-user-server/pom.xml docker:build

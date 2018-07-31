@@ -1,9 +1,9 @@
 package com.lmt.mbsp.user.biz;
 
 
-import com.lmt.framework.core.exception.BusinessException;
-import com.lmt.mbsp.user.entity.group.Group;
-import com.lmt.mbsp.user.vo.*;
+import com.lmt.mbsp.user.vo.dept.*;
+import com.lmt.mbsp.user.vo.group.GroupDetailInfo;
+import com.lmt.mbsp.user.vo.group.GroupInfo;
 
 import java.util.List;
 
@@ -20,16 +20,16 @@ public interface GroupDeptBiz {
      * @return List<GroupInfo>
      * @throws Exception
      */
-    List<GroupInfo> selById(Long groupId) throws Exception;
+    List<DeptTreeInfo> selById(Long groupId) throws Exception;
 
     /**
      * 根据组ID+组名称查询组信息（名称为模糊搜索）
-     * @param grade 组类型（0内部组 1非内部组）
+     * @param type 组类型（0内部组 1非内部组）
      * @param name  组名称
      * @return boolean
      * @throws Exception
      */
-    List<GroupInfo> selByGradeAndName(Integer grade, String name) throws Exception;
+    List<GroupInfo> selByGradeAndName(Integer type, String name) throws Exception;
 
     /**
      * 根据公司ID+部门名称查询该部门是否已经存在
@@ -48,11 +48,11 @@ public interface GroupDeptBiz {
 
     /**
      * 进入新增部门页面所需数据
-     * @param parentCode 父部门Code（可为空，为空代表新增一级部门）
+     * @param pid 父部门ID（可为空或0，为空或0代表新增一级部门）
      * @return ToEditDeptInfo
      * @throws Exception
      */
-    ToAddDeptInfo toAddDept(String parentCode) throws Exception;
+    List<GroupInfo> toAddDept(Long pid) throws Exception;
 
     /**
      * 新增部门信息
@@ -129,8 +129,16 @@ public interface GroupDeptBiz {
     /**
      * 公司详细页需要展示的数据
      * @param id 主键ID
-     * @return InnerCompanyDetailInfo
+     * @return GroupDetailInfo
      * @throws Exception 异常
      */
-    InnerCompanyDetailInfo detailCompany(Long id) throws Exception;
+    GroupDetailInfo detailCompany(Long id) throws Exception;
+
+    /**
+     * 关联子公司
+     * @param parentId    父公司Id
+     * @param sonName 子公司名称
+     * @throws Exception
+     */
+    void relationSon(Long parentId, String sonName) throws Exception;
 }

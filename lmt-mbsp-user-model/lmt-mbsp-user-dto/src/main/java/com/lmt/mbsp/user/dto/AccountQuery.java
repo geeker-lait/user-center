@@ -14,8 +14,7 @@ import java.util.List;
 @Data
 public class AccountQuery extends PageQueryEntity{
     private Long id;    // 主键ID
-    private String username;// 用户名
-    private String account; //账号
+    private String accountName;// 用户名
     private Integer state;  //  状态
     private Boolean isLock; // 是否锁定
     private Integer master; // 授权管理员类型

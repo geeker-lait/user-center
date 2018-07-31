@@ -18,7 +18,7 @@
     where group_id = #{groupId,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupImg">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupImg" useGeneratedKeys="true" keyProperty="id">
     insert into t_group_img (id, group_id, img_url,type
       )
     values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{imgUrl,jdbcType=VARCHAR},

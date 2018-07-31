@@ -14,7 +14,7 @@
         id = #{id,jdbcType=BIGINT}
     </delete>
 
-    <insert id="insert" parameterType="com.lmt.mbsp.user.entity.permission.PermissionResources">
+    <insert id="insert" parameterType="com.lmt.mbsp.user.entity.permission.PermissionResources" useGeneratedKeys="true" keyProperty="id">
       insert into t_permission_resources (
         id, permission_id, resources_id
       )

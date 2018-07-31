@@ -5,7 +5,7 @@ import com.lmt.framework.support.web.controller.CrudController;
 import com.lmt.mbsp.user.dto.RolePermissionQuery;
 import com.lmt.mbsp.user.entity.role.RolePermission;
 import com.lmt.mbsp.user.service.RolePermissionService;
-import com.lmt.mbsp.user.vo.RolePermissionInfo;
+import com.lmt.mbsp.user.vo.permission.RolePermissionInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

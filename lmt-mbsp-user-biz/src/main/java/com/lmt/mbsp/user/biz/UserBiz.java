@@ -2,10 +2,16 @@ package com.lmt.mbsp.user.biz;
 
 import com.lmt.framework.support.entity.PagerResult;
 import com.lmt.mbsp.user.dto.UserQuery;
-import com.lmt.mbsp.user.entity.user.User;
-import com.lmt.mbsp.user.vo.*;
+import com.lmt.mbsp.user.vo.admin.AddAdminInfo;
+import com.lmt.mbsp.user.vo.admin.EditAdminInfo;
+import com.lmt.mbsp.user.vo.admin.ToEditAdminInfo;
+import com.lmt.mbsp.user.vo.operator.AddOperatorInfo;
+import com.lmt.mbsp.user.vo.operator.OperatorListInfo;
+import com.lmt.mbsp.user.vo.operator.ToEditOperatorInfo;
+import com.lmt.mbsp.user.vo.person.EditUserInfo;
+import com.lmt.mbsp.user.vo.person.UserDetailInfo;
+import com.lmt.mbsp.user.vo.person.UserInfo;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -15,16 +21,18 @@ import java.util.List;
  */
 public interface UserBiz {
     /**
-     * 完善个人资料
-     * @param info 用户信息
+     * 组装进入完善/编辑个人资料页面所需展示数据
+     * @param userId    用户ID
+     * @throws Exception
      */
-    void supplementInfo(UserInfo info) throws Exception;
+    ToEditAdminInfo toSupplement(Long userId) throws Exception;
 
     /**
-     * 编辑个人资料
-     * @param info 编辑用户信息
+     * 完善/编辑个人资料
+     * @param info 用户信息
+     * @throws Exception
      */
-    void editInfo(UserInfo info) throws Exception;
+    void supplement(EditUserInfo info) throws Exception;
 
     /**
      * 新增操作员
@@ -43,16 +51,17 @@ public interface UserBiz {
     /**
      * 根据参数获取用户相关信息
      * @param userId    用户ID
+     * @param type  0查询个人用户 1查询系统用户
      * @return UserDetailInfo
      */
-    UserDetailInfo userDetail(Long userId) throws Exception;
+    UserDetailInfo userDetail(Long userId, Integer type) throws Exception;
 
     /**
      * 新增系统用户
      * @param info 系统用户参数
      * @return Long
      */
-    Long addSysUser(AddSysUserInfo info) throws Exception;
+    Long addSysUser(AddAdminInfo info) throws Exception;
 
     /**
      * 将用户加入某个组
@@ -62,32 +71,20 @@ public interface UserBiz {
     void add2Group(Long groupId, Long userId) throws Exception;
 
     /**
-     * 获取用户授权信息
-     * @param userId    用户ID
-     */
-    UserDetailInfo getUserAuthorize(Long userId) throws Exception;
-
-    /**
-     * 用户授权void
-     * @param info    授权参数
-     */
-     void userAuthorize(SaveUserAuthorizeInfo info) throws Exception;
-
-    /**
      * 查询编辑系统用户所需信息
      * @param userId    用户ID
      * @return UserDetailInfo
      */
-    ToEditSysUserInfo toEditUser(Long userId) throws Exception;
+    ToEditAdminInfo toEditSysUser(Long userId) throws Exception;
 
     /**
      * 编辑系统用户
      * @param info 系统用户参数
      */
-    void editSysUser(EditSysUserInfo info) throws Exception;
+    void editSysUser(EditAdminInfo info) throws Exception;
 
     /**
-     * 根据条件查询系统用户列表
+     * 根据条件查询用户列表
      * @param info  查询用户参数
      * @return PagerResult<User>
      */
@@ -113,25 +110,17 @@ public interface UserBiz {
     List<OperatorListInfo> operatorList(Long groupId) throws Exception;
 
     /**
-     * 根据公司ID查询公司下所有用户账号列表（不含角色信息）
+     * 根据公司ID查询公司下所有用户账号列表（不含角色信息,企业商户下账号信息）
      * @param groupId 公司ID
      * @return List<OperatorListInfo>
      */
     List<OperatorListInfo> userAccountList(Long groupId) throws Exception;
 
     /**
-     * 设置企业商户管理员
-     * @param groupId   公司ID
-     * @param accountId    账号ID
+     * 组装进入编辑操作员信息页面所需参数
+     * @param userId 用户主键ID
+     * @return ToEditOperatorInfo
      * @throws Exception
      */
-    void addManager(Long groupId, Long accountId) throws Exception;
-
-    /**
-     * 获取操作员授权信息
-     * @param userId    用户ID
-     * @param accountId 账号ID
-     * @return UserDetailInfo
-     */
-    UserDetailInfo toSysUserAuthorize(Long userId, Long accountId) throws Exception;
+    ToEditOperatorInfo toEditOperator(Long userId, Long accountId)throws Exception;
 }

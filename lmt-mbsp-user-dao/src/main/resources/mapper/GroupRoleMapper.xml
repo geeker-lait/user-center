@@ -17,7 +17,7 @@
     where group_id = #{groupId,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupRole">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupRole" useGeneratedKeys="true" keyProperty="id">
     insert into t_group_role (id, group_id, role_id)
     values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{roleId,jdbcType=BIGINT})
   </insert>

@@ -8,6 +8,8 @@ import com.lmt.mbsp.user.service.AccountNameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 /*
  * @描述：账号密码接口实现
@@ -32,5 +34,10 @@ public class AccountNameServiceImpl extends BaseServiceImpl<AccountName,Long> im
     @Override
     public AccountName selectByAccountName(String accountName){
         return accountNameMapper.selectByAccountName(accountName);
+    }
+
+    @Override
+    public List<AccountName> selectByAccountId(Long accountId){
+        return accountNameMapper.selectByAccountId(accountId);
     }
 }

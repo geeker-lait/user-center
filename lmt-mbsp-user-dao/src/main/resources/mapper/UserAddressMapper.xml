@@ -17,7 +17,7 @@
     where id = #{id,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.user.UserAddress">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.user.UserAddress" useGeneratedKeys="true" keyProperty="id">
     insert into t_user_address (id, address, state, 
       create_time, sort, phone,
       name, user_id

@@ -53,7 +53,7 @@
     where id = #{id,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.Group">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.Group" useGeneratedKeys="true" keyProperty="id">
     insert into t_group (code, create_time,
       `name`, state, typ,
       code_path, organization_code, pid,
@@ -176,19 +176,19 @@
       <if test="pid != null">AND pid=#{pid,jdbcType=BIGINT}</if>
       <if test="groupId != null">AND group_id=#{groupId,jdbcType=BIGINT}</if>
       <if test="code != null">AND code=#{code,jdbcType=VARCHAR}</if>
-      <if test="codePath != null">AND code_path like '%' #{codePath,jdbcType=VARCHAR} '%'</if>
+      <if test="codePath != null">AND code_path like CONCAT('%',#{codePath,jdbcType=VARCHAR},'%'</if>
       <if test="state != null">AND state=#{state,jdbcType=INTEGER}</if>
       <if test="auditState != null">AND audit_state=#{auditState,jdbcType=INTEGER}</if>
       <if test="typ != null">AND typ=#{typ,jdbcType=INTEGER}</if>
       <if test="grade != null">AND grade=#{grade,jdbcType=INTEGER}</if>
-      <if test="name != null">AND `name` like '%'#{name,jdbcType=VARCHAR} '%'</if>
-      <if test="codes != null">
+      <if test="name != null">AND `name` like CONCAT('%',#{name,jdbcType=VARCHAR},'%')</if>
+      <if test="codes != null and codes.size()>0">
         AND
         <foreach collection="codes" item="code" open="(" close=")" separator="or">
           code = #{code,jdbcType=VARCHAR}
         </foreach>
       </if>
-      <if test="ids != null and ids.size() > 0">
+      <if test="ids != null and ids.size()>0">
         AND
         <foreach collection="ids" item="id" open="(" close=")" separator="or">
           id = #{id,jdbcType=BIGINT}

@@ -3,17 +3,15 @@ package com.lmt.mbsp.user.controller;
 import com.lmt.framework.support.model.message.ResponseMessage;
 import com.lmt.framework.support.service.CrudService;
 import com.lmt.framework.support.web.controller.CrudController;
-import com.lmt.mbsp.user.biz.GroupCompanyBiz;
+import com.lmt.mbsp.user.biz.CompanyBiz;
 import com.lmt.mbsp.user.controller.login.LoginContext;
 import com.lmt.mbsp.user.dto.GroupQuery;
 import com.lmt.mbsp.user.entity.group.Group;
 import com.lmt.mbsp.user.service.GroupService;
-import com.lmt.mbsp.user.vo.AddCompanyInfo;
-import com.lmt.mbsp.user.vo.GroupInfo;
-import com.lmt.mbsp.user.vo.IndexInfo;
+import com.lmt.mbsp.user.vo.group.GroupInfo;
+import com.lmt.mbsp.user.vo.operator.IndexInfo;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import static com.lmt.framework.support.model.message.ResponseMessage.ok;
@@ -27,10 +25,10 @@ import static com.lmt.framework.support.model.message.ResponseMessage.ok;
 @RequestMapping("/index")
 public class IndexController implements CrudController<Group,Long,GroupQuery,GroupInfo> {
     private GroupService groupService;
-    private GroupCompanyBiz groupCompanyBiz;
+    private CompanyBiz groupCompanyBiz;
 
     @Autowired
-    public void IndexController(GroupService groupService, GroupCompanyBiz groupCompanyBiz){
+    public void IndexController(GroupService groupService, CompanyBiz groupCompanyBiz){
         this.groupService = groupService;
         this.groupCompanyBiz = groupCompanyBiz;
     }

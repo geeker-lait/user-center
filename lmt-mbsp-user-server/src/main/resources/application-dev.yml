@@ -1,7 +1,32 @@
+server:
+  port: 8081
+#  servlet:
+#      context-path:
+#  context-path: /portal
+#  undertow:
+#    accesslog:
+#      dir:
+#      prefix: access_log.
+#      pattern: common
+#      rotate: true
+#      suffix:
+#    direct-buffers: true
+#    buffer-size: 10240
+#    max-http-post-size: 10
+#    io-threads: 16
+#    worker-threads: 256
+
 spring:
   profiles:
     include: dev-dao,dev-redis
+
 eureka:
+  password: password
   client:
     serviceUrl:
-      defaultZone: http://192.168.1.165:58761/eureka/
+      defaultZone: http://user:${eureka.password}@192.168.1.165:58761/eureka/
+  instance:
+    leaseRenewalIntervalInSeconds: 10
+    metadataMap:
+      instanceId: ${vcap.application.instance_id:${spring.application.name}:${spring.application.instance_id:${server.port}}}
+    prefer-ip-address: true

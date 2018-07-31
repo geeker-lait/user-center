@@ -19,7 +19,7 @@
     where user_id = #{userId,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupUser">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupUser" useGeneratedKeys="true" keyProperty="id">
     insert into t_group_user (id, group_id, user_id,
     code_path, create_time
       )
@@ -76,7 +76,7 @@
       <if test="id != null">AND id = #{id,jdbcType=BIGINT}</if>
       <if test="groupId != null">AND group_id = #{groupId,jdbcType=BIGINT}</if>
       <if test="userId != null">AND user_id = #{userId,jdbcType=BIGINT}</if>
-      <if test="codePath != null">AND code_path like '%' #{codePath,jdbcType=VARCHAR} '%'</if>
+      <if test="codePath != null">AND code_path like CONCAT('%',#{codePath,jdbcType=VARCHAR},'%')</if>
     </where>
   </sql>
 </mapper>

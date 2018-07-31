@@ -10,7 +10,7 @@
     delete from t_group_member
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupMember">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupMember" useGeneratedKeys="true" keyProperty="id">
     insert into t_group_member (id, group_id, member_id
       )
     values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{memberId,jdbcType=BIGINT}

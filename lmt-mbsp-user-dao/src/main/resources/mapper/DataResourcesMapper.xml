@@ -16,7 +16,7 @@
     delete from t_data_resources
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.resources.DataResources">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.resources.DataResources" useGeneratedKeys="true" keyProperty="id">
     insert into t_data_resources (id, content, icon, 
       name, state, uri, code,
       parent_code, description, create_time)

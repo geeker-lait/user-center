@@ -1,6 +1,6 @@
 package com.lmt.mbsp.user.biz;
 
-import com.lmt.mbsp.user.vo.LoginInfo;
+import com.lmt.mbsp.user.vo.account.LoginInfo;
 
 /**
  * @Auther: lait.zhang@gmail.com

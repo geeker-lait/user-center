@@ -15,4 +15,11 @@ public interface AccountNameMapper extends BaseMapper<AccountName, Long> {
      * @return AccountName
      */
     AccountName selectByAccountName(String accountName);
+
+    /**
+     * 根据主账号ID查询该账号所有账号名称
+     * @param accountId 账号ID
+     * @return List<AccountName>
+     */
+    List<AccountName> selectByAccountId(Long accountId);
 }

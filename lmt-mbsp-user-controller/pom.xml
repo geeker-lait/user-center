@@ -5,7 +5,7 @@
     <parent>
         <artifactId>user-center</artifactId>
         <groupId>com.lmt.mbsp.user</groupId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>lmt-mbsp-user-controller</artifactId>
@@ -34,6 +34,12 @@
         <dependency>
             <groupId>com.lmt.mbsp.user</groupId>
             <artifactId>lmt-mbsp-user-biz</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 
@@ -45,7 +51,15 @@
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>swagger-bootstrap-ui</artifactId>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.github.caspar-chen</groupId>-->
+            <!--<artifactId>swagger-ui-layer</artifactId>-->
+            <!--<version>0.0.5</version>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -109,7 +123,6 @@
         </dependency>-->
 
 
-
         <!--<dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
@@ -145,16 +158,16 @@
             <version>1.4.1.RELEASE</version>
         </dependency>-->
 
-       <!-- <dependency>
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>tomcat-juli</artifactId>
-            <version>${tomcat.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>tomcat-catalina</artifactId>
-            <version>${tomcat.version}</version>
-        </dependency>-->
+        <!-- <dependency>
+             <groupId>org.apache.tomcat</groupId>
+             <artifactId>tomcat-juli</artifactId>
+             <version>${tomcat.version}</version>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.tomcat</groupId>
+             <artifactId>tomcat-catalina</artifactId>
+             <version>${tomcat.version}</version>
+         </dependency>-->
 
 
     </dependencies>

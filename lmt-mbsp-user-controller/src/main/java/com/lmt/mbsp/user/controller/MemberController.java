@@ -5,7 +5,7 @@ import com.lmt.framework.support.web.controller.CrudController;
 import com.lmt.mbsp.user.dto.MemberQuery;
 import com.lmt.mbsp.user.entity.member.Member;
 import com.lmt.mbsp.user.service.MemberService;
-import com.lmt.mbsp.user.vo.MemberInfo;
+import com.lmt.mbsp.user.vo.member.MemberInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

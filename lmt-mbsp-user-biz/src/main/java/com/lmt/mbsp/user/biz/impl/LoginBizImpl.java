@@ -8,7 +8,7 @@ import com.lmt.mbsp.user.entity.resources.UrlResources;
 import com.lmt.mbsp.user.entity.role.RolePermission;
 import com.lmt.mbsp.user.redis.RedisService;
 import com.lmt.mbsp.user.service.*;
-import com.lmt.mbsp.user.vo.LoginInfo;
+import com.lmt.mbsp.user.vo.account.LoginInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -67,10 +67,10 @@ public class LoginBizImpl implements LoginBiz {
 
         //2、 如果没有查询到，去数据库中查询，然后放入redis 缓存
         // 先查询出账户id
-        //Account account = accountService.selectByAccount(loginInfo.getAccount());
+        Account account = null;//accountService.selectByAccount(loginInfo.getAccount());
         //
         AccountRole accountRole = new AccountRole();
-        //accountRole.setAccountId(account.getId());
+        accountRole.setAccountId(account.getId());
         // 查询账户和角色关联表,获取对应的角色
         List<AccountRole> accountRoleList = accountRoleService.select(accountRole);
         // 获取角色ID列表，查询角色所对应的权限

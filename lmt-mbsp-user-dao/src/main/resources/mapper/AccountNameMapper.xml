@@ -4,7 +4,7 @@
   <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.account.AccountName">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="account_id" jdbcType="BIGINT" property="accountId" />
-    <result column="accountName" jdbcType="VARCHAR" property="accountName" />
+    <result column="account_name" jdbcType="VARCHAR" property="accountName" />
     <result column="typ" jdbcType="INTEGER" property="typ" />
   </resultMap>
 
@@ -13,7 +13,7 @@
     where id = #{id,jdbcType=BIGINT}
   </delete>
 
-  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.account.AccountName">
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.account.AccountName" useGeneratedKeys="true" keyProperty="id">
     insert into t_account_name (account_id, typ, account_name)
     values (#{accountId,jdbcType=BIGINT}, #{typ,jdbcType=INTEGER}, #{accountName,jdbcType=VARCHAR})
   </insert>
@@ -32,6 +32,12 @@
     where id = #{id,jdbcType=BIGINT}
   </select>
 
+  <select id="selectByAccountId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_account_name
+    where account_id = #{accountId,jdbcType=BIGINT}
+  </select>
+
   <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.account.AccountName" resultMap="BaseResultMap">
     select <include refid="selFields"/>
     from t_account_name
@@ -41,7 +47,7 @@
   <select id="selectByAccountName" parameterType="java.lang.String" resultMap="BaseResultMap">
     select <include refid="selFields"/>
     from t_account_name
-    <include refid="paramSql"/>
+    where account_name = #{accounName,jdbcType=VARCHAR}
   </select>
 
   <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.account.AccountName">
