@@ -1,1 +1,0 @@
-package com.lmt.mbsp.user.entity;
