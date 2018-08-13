@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.group.DepartmentMapper">
+  <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.group.Department">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="group_id" jdbcType="BIGINT" property="groupId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_department
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.Department" useGeneratedKeys="true" keyProperty="id">
+    insert into t_department (id, group_id, name,
+      state, create_time
+      )
+    values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR},
+      #{state,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.group.Department">
+    update t_department
+    set group_id = #{groupId,jdbcType=BIGINT},
+      name = #{name,jdbcType=VARCHAR},
+      state = #{state,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_department
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <!--根据名称查询该部门是否已经存在-->
+  <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap" >
+    select <include refid="selFields"/>
+    from t_department
+    where `name` = #{name,jdbcType=VARCHAR}
+  </select>
+
+  <select id="selectByGroupId" parameterType="java.lang.Long" resultMap="BaseResultMap" >
+    select <include refid="selFields"/>
+    from t_department
+    where group_id = #{groupId,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.group.Department" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_department
+    <include refid="paramSql"/>
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.group.Department">
+    select <include refid="selFields"/>
+    from t_department
+    <include refid="paramSql"/>
+  </select>
+
+  <select id="count" parameterType="java.lang.Long" resultType="java.lang.Integer">
+    select count(*)
+    from t_department
+    <include refid="paramSql"/>
+  </select>
+
+  <!--查询返回字段-->
+  <sql id="selFields">id, group_id, name, audit_state, legal_person, organization_code, `type`, validity, business_scope, address, capital, phone, state, create_time</sql>
+
+  <!--查询参数-->
+  <sql id="paramSql">
+    <where>
+      <if test="id != null">AND id=#{id,jdbcType=BIGINT}</if>
+      <if test="groupId != null">AND group_id=#{groupId,jdbcType=INTEGER}</if>
+      <if test="state != null">AND state=#{state,jdbcType=INTEGER}</if>
+      <if test="name != null">AND `name` like CONCAT('%',#{name,jdbcType=VARCHAR},'%')</if>
+    </where>
+  </sql>
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.account.AccountNameMapper">
+  <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.account.AccountName">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="account_id" jdbcType="BIGINT" property="accountId" />
+    <result column="account_name" jdbcType="VARCHAR" property="accountName" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_account_name
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.account.AccountName" useGeneratedKeys="true" keyProperty="id">
+    insert into t_account_name (account_id, type, account_name)
+    values (#{accountId,jdbcType=BIGINT}, #{type,jdbcType=INTEGER}, #{accountName,jdbcType=VARCHAR})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.account.AccountName">
+    update t_account_name
+    set account_id = #{accountId,jdbcType=BIGINT},
+      type = #{type,jdbcType=INTEGER},
+     account_name =  #{accountName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_account_name
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectByAccountId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_account_name
+    where account_id = #{accountId,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.account.AccountName" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_account_name
+    <include refid="paramSql"/>
+  </select>
+
+  <select id="selectByAccountName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_account_name
+    where account_name = #{accounName,jdbcType=VARCHAR}
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.account.AccountName">
+    select <include refid="selFields"/>
+    from t_account_name
+    <include refid="paramSql"/>
+  </select>
+
+  <select id="count" parameterType="com.lmt.mbsp.user.entity.account.AccountName" resultType="java.lang.Integer">
+    select count(*)
+    from t_account_name
+    <include refid="paramSql"/>
+  </select>
+
+  <!--查询返回字段-->
+  <sql id="selFields">id, account_id, account_name, type</sql>
+
+  <!--查询参数-->
+  <sql id="paramSql">
+    <where>
+      <if test="id != null">AND id=#{id,jdbcType=BIGINT}</if>
+      <if test="accountId != null">AND account_id=#{accountId,jdbcType=BIGINT}</if>
+      <if test="accountName != null">AND account_name=#{accountName,jdbcType=VARCHAR}</if>
+      <if test="type != null">AND type=#{type,jdbcType=INTEGER}</if>
+    </where>
+  </sql>
+</mapper>

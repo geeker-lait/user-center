@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.member.MemberMapper">
+  <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.member.Member">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="icon" jdbcType="VARCHAR" property="icon" />
+    <result column="level" jdbcType="INTEGER" property="level" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_member
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.member.Member" useGeneratedKeys="true" keyProperty="id">
+    insert into t_member (id, icon, level, 
+      name)
+    values (#{id,jdbcType=BIGINT}, #{icon,jdbcType=VARCHAR}, #{level,jdbcType=INTEGER}, 
+      #{name,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.member.Member">
+    update t_member
+    set icon = #{icon,jdbcType=VARCHAR},
+      level = #{level,jdbcType=INTEGER},
+      name = #{name,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select id, icon, level, name
+    from t_member
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.member.Member">
+    select id, icon, level, name
+    from t_member
+  </select>
+  <select id="count" parameterType="java.lang.Long" resultType="java.lang.Integer">
+    select count(*)
+    from t_member
+  </select>
+</mapper>

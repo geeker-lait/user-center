@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.group.GroupMapper">
+  <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.group.Group">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_group
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.Group" useGeneratedKeys="true" keyProperty="id">
+    insert into t_group (type)
+    values (#{type,jdbcType=INTEGER})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.group.Group">
+    update t_group
+    set type = #{type,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_group
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.group.Group" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_group
+    <include refid="paramSql"/>
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.group.Group">
+    select <include refid="selFields"/>
+    from t_group
+    <include refid="paramSql"/>
+  </select>
+
+  <select id="count" parameterType="com.lmt.mbsp.user.entity.group.Group" resultType="java.lang.Integer">
+    select count(*)
+    from t_group
+    <include refid="paramSql"/>
+  </select>
+
+  <!--查询返回字段-->
+  <sql id="selFields">id, type</sql>
+
+  <!--查询参数-->
+  <sql id="paramSql">
+    <where>
+      <if test="id != null">AND id=#{id,jdbcType=BIGINT}</if>
+      <if test="type != null">AND type=#{type,jdbcType=INTEGER}</if>
+    </where>
+  </sql>
+</mapper>

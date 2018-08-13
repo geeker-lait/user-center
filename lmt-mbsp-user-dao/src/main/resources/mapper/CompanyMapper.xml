@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.group.CompanyMapper">
+  <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.group.Company">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="group_id" jdbcType="BIGINT" property="groupId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="organization_code" jdbcType="VARCHAR" property="organizationCode" />
+    <result column="legal_person" jdbcType="VARCHAR" property="legalPerson" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="validity" jdbcType="VARCHAR" property="validity" />
+    <result column="business_scope" jdbcType="VARCHAR" property="businessScope" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="capital" jdbcType="VARCHAR" property="capital" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="audit_state" jdbcType="INTEGER" property="auditState" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_company
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.Company" useGeneratedKeys="true" keyProperty="id">
+    insert into t_company (id, group_id, legal_person,
+    `name`, audit_state,
+    `type`, validity, business_scope,
+    address, capital, phone,
+    organization_code, state, create_time
+      )
+    values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{legalPerson,jdbcType=VARCHAR},
+      #{name,jdbcType=VARCHAR}, #{auditState,jdbcType=INTEGER},
+      #{type,jdbcType=INTEGER}, #{validity,jdbcType=VARCHAR}, #{businessScope,jdbcType=VARCHAR},
+      #{address,jdbcType=VARCHAR}, #{capital,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR},
+      #{organizationCode,jdbcType=VARCHAR}, #{state,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.group.Company">
+    update t_company
+    set group_id = #{groupId,jdbcType=BIGINT},
+      `name` = #{name,jdbcType=VARCHAR},
+      audit_state = #{auditState,jdbcType=INTEGER},
+      legal_person = #{legalPerson,jdbcType=VARCHAR},
+      `type` = #{type,jdbcType=INTEGER},
+      validity = #{validity,jdbcType=VARCHAR},
+      business_scope = #{businessScope,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      capital = #{capital,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      organization_code = #{organizationCode,jdbcType=VARCHAR},
+      state = #{state,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_company
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectByGroupId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_company
+    where group_id = #{groupId,jdbcType=BIGINT}
+  </select>
+
+  <!--根据公司名称查询该公司是否已经存在-->
+  <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap" >
+    select <include refid="selFields"/>
+    from t_company
+    where `name` = #{name,jdbcType=VARCHAR}
+  </select>
+
+  <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.group.Company" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_company
+    <include refid="paramSql"/>
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.group.Company">
+    select <include refid="selFields"/>
+    from t_company
+    <include refid="paramSql"/>
+    <choose>
+      <when test="sortName != null">
+        ORDER BY #{sortName}
+        <choose>
+          <when test="sortType == 0">ASC</when>
+          <otherwise>DESC</otherwise>
+        </choose>
+      </when>
+      <otherwise>ORDER BY id DESC</otherwise>
+    </choose>
+  </select>
+
+  <select id="count" parameterType="java.lang.Long" resultType="java.lang.Integer">
+    select count(*)
+    from t_company
+    <include refid="paramSql"/>
+  </select>
+
+  <!--查询返回字段-->
+  <sql id="selFields">id, group_id, `name`, audit_state, legal_person, organization_code, `type`, validity, business_scope, address, capital, phone, state, create_time</sql>
+
+  <!--查询参数-->
+  <sql id="paramSql">
+    <where>
+      <if test="id != null">AND id=#{id,jdbcType=BIGINT}</if>
+      <if test="groupId != null">AND group_id=#{groupId,jdbcType=INTEGER}</if>
+      <if test="auditState != null">AND audit_state=#{auditState,jdbcType=INTEGER}</if>
+      <if test="state != null">AND state=#{state,jdbcType=INTEGER}</if>
+      <if test="name != null">AND `name` like CONCAT('%',#{name,jdbcType=VARCHAR},'%')</if>
+      <if test="ids != null and ids.size() >0">
+        AND
+        <foreach collection="ids" item="id" open="(" close=")" separator="or">
+          id = #{id}
+        </foreach>
+      </if>
+      <if test="groupIds != null and groupIds.size() >0">
+        AND
+        <foreach collection="groupIds" item="groupId" open="(" close=")" separator="or">
+          group_id = #{groupId}
+        </foreach>
+      </if>
+    </where>
+  </sql>
+</mapper>

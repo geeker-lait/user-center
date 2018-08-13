@@ -1,0 +1,13 @@
+package com.lmt.mbsp.user.service;
+
+import com.lmt.framework.support.service.CrudService;
+import com.lmt.mbsp.user.entity.permission.PermissionResources;
+
+/**
+ * @Auther: lait.zhang@gmail.com
+ * @Tel:15801818092
+ * @Date: 7/17/2018 19:25
+ * @Description:
+ */
+public interface PermissionResourcesService  extends CrudService<PermissionResources,Long> {
+}

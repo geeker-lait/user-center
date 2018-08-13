@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.accredit.AccreditMapper">
+    <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.accredit.Accredit">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="role_id" jdbcType="BIGINT" property="roleId"/>
+        <result column="resource_id" jdbcType="BIGINT" property="resourceId"/>
+        <result column="permissions" jdbcType="VARCHAR" property="permissions"/>
+        <result column="permission_id" jdbcType="BIGINT" property="permissionId"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+      delete
+      from
+        t_accredit
+      where
+        id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByRoleId" parameterType="java.lang.Long">
+      delete
+      from
+        t_accredit
+      where
+        role_id=#{roleId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insert" parameterType="com.lmt.mbsp.user.entity.accredit.Accredit" useGeneratedKeys="true"
+            keyProperty="id">
+      insert into t_accredit (
+          id,role_id,resource_id,permissions,permission_id
+      )
+      values (
+        #{id,jdbcType=BIGINT},
+        #{roleId,jdbcType=BIGINT},
+        #{resourceId,jdbcType=BIGINT},
+        #{permissions,jdbcType=VARCHAR},
+        #{permissionId,jdbcType=BIGINT}
+      )
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.accredit.Accredit">
+      update
+        t_accredit
+      set
+        role_id=#{roleId,jdbcType=BIGINT},
+        resource_id = #{resourceId,jdbcType=BIGINT},
+        permissions = #{permissions,jdbcType=VARCHAR},
+        permission_id = #{permissionId,jdbcType=BIGINT}
+      where
+        id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="selFields"/>
+        from
+        t_accredit
+        where
+        id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectByRoleId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="selFields"/>
+        from
+        t_accredit
+        where
+        role_id=#{roleId,jdbcType=BIGINT}
+    </select>
+
+
+    <select id="selectByRoleIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="selFields"/>
+        from
+        t_accredit
+        where
+        role_id in
+        <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+
+    <!--<select id="selectResourcesByRoleIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="selFields"/>
+        from
+        t_accredit
+        where
+        role_id in
+        <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>-->
+
+    <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.role.Role" resultMap="BaseResultMap">
+        select
+        <include refid="selFields"/>
+        from t_accredit
+        <where>
+            1=1
+            <!--<if test="id != null">AND id=#{id,jdbcType=BIGINT}</if>-->
+            <if test="roleId != null">AND role_id=#{roleId,jdbcType=BIGINT}</if>
+            <if test="resourceId != null">AND resource_id=#{resourceId,jdbcType=BIGINT}</if>
+            <!--<if test="permissionId != null">AND permission_id=#{permissionId,jdbcType=BIGINT}</if>-->
+        </where>
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.accredit.Accredit">
+        select
+        <include refid="selFields"/>
+        from
+        t_accredit
+        <include refid="paramSql"/>
+    </select>
+
+    <select id="count" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        select
+        count(*)
+        from
+        t_accredit
+        <include refid="paramSql"/>
+    </select>
+
+    <!--查询返回字段-->
+    <sql id="selFields">id, role_id,resource_id,permissions,permission_id,state</sql>
+
+    <!--查询参数-->
+    <sql id="paramSql">
+        <where>
+            1=1
+            <if test="roleId != null">AND role_id=#{roleId,jdbcType=BIGINT}</if>
+            <if test="resourceId != null">AND resource_id=#{resourceId,jdbcType=BIGINT}</if>
+            <if test="permissions != null">AND permissions=#{permissions,jdbcType=VARCHAR}</if>
+            <if test="permissionId != null">AND permission_id=#{permissionId,jdbcType=BIGINT}</if>
+            <if test="state != null">AND state=#{state,jdbcType=INTEGER}</if>
+        </where>
+    </sql>
+</mapper>

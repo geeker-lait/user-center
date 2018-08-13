@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.role.RoleResourceMapper">
+    <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.role.RoleResource">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="role_id" jdbcType="BIGINT" property="roleId"/>
+        <result column="resource_id" jdbcType="BIGINT" property="resourceId"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+      delete
+      from
+        t_accredit
+      where
+        id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByRoleId" parameterType="java.lang.Long">
+      delete
+      from
+        t_accredit
+      where
+        role_id=#{roleId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insert" parameterType="com.lmt.mbsp.user.entity.role.RoleResource" useGeneratedKeys="true" keyProperty="id">
+      insert into t_accredit (
+          id,role_id,resource_id
+      )
+      values (
+        #{id,jdbcType=BIGINT},
+        #{roleId,jdbcType=BIGINT},
+        #{resourceId,jdbcType=BIGINT},
+      )
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.role.RoleResource">
+      update
+        t_accredit
+      set
+        role_id=#{roleId,jdbcType=BIGINT},
+        resource_id = #{resourceId,jdbcType=BIGINT}
+      where
+        id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+      select
+        <include refid="selFields"/>
+      from
+        t_accredit
+      where
+        id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectByRoleId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="selFields"/>
+        from
+        t_accredit
+        where
+        role_id=#{roleId,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.role.RoleResource" resultMap="BaseResultMap">
+        select
+          <include refid="selFields"/>
+        from
+          t_accredit
+        <include refid="paramSql"/>
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.role.RoleResource">
+      select
+        <include refid="selFields"/>
+      from
+        t_accredit
+        <include refid="paramSql"/>
+    </select>
+
+    <select id="count" parameterType="java.lang.Long" resultType="java.lang.Integer">
+      select
+        count(*)
+      from
+        t_accredit
+        <include refid="paramSql"/>
+    </select>
+
+    <!--查询返回字段-->
+    <sql id="selFields">id, role_id,resource_id</sql>
+
+    <!--查询参数-->
+    <sql id="paramSql">
+        <where>
+            1=1
+            <if test="roleId != null">AND role_id=#{roleId,jdbcType=BIGINT}</if>
+            <if test="resourceId != null">AND resource_id=#{resourceId,jdbcType=BIGINT}</if>
+        </where>
+    </sql>
+</mapper>

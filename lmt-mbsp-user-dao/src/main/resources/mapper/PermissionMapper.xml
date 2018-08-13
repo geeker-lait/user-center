@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.permission.PermissionMapper">
+    <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.permission.Permission">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="val" jdbcType="INTEGER" property="val"/>
+        <result column="code" jdbcType="VARCHAR" property="code"/>
+        <result column="icon" jdbcType="VARCHAR" property="icon"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="descr" jdbcType="VARCHAR" property="descr"/>
+        <result column="parent_code" jdbcType="VARCHAR" property="parentCode"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+
+
+    <sql id="selFields">id,name,val,code,icon,state,descr,parent_code,create_time</sql>
+
+    <!--查询参数-->
+    <sql id="paramSql">
+        <where>
+            1 = 1
+            <if test="name != null">
+                and name = #{name,jdbcType=VARCHAR}
+            </if>
+            <if test="code != null">
+                and code = #{code,jdbcType=VARCHAR}
+            </if>
+
+            <if test="descr != null">
+                and descr like "%"#{descr,jdbcType=VARCHAR}"%"
+            </if>
+            <if test="state != null">
+                and state = #{state,jdbcType=INTEGER}
+            </if>
+        </where>
+    </sql>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+      delete from
+        t_permission
+      where
+        id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insert" parameterType="com.lmt.mbsp.user.entity.permission.Permission" useGeneratedKeys="true" keyProperty="id">
+        insert into t_permission (
+          <include refid="selFields"/>
+        ) values (
+          #{id,jdbcType=BIGINT},
+          #{name,jdbcType=VARCHAR},
+          #{val,jdbcType=INTEGER},
+          #{code,jdbcType=VARCHAR},
+          #{icon,jdbcType=VARCHAR},
+          #{state,jdbcType=INTEGER},
+          #{descr,jdbcType=VARCHAR},
+          #{parentCode,jdbcType=VARCHAR},
+          #{createTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.permission.Permission">
+        update
+          t_permission
+        set
+          name=#{name,jdbcType=VARCHAR},
+          val=#{val,jdbcType=INTEGER},
+          code=#{code,jdbcType=VARCHAR},
+          icon=#{icon,jdbcType=VARCHAR},
+          state=#{state,jdbcType=INTEGER},
+          descr=#{descr,jdbcType=VARCHAR},
+          parent_code=#{parentCode,jdbcType=VARCHAR},
+          create_time=#{createTime,jdbcType=TIMESTAMP}
+        where
+          id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+      select
+        <include refid="selFields"/>
+      from
+        t_permission
+      where
+        id = #{id,jdbcType=BIGINT}
+    </select>
+
+
+    <select id="selectByVal" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="selFields"/>
+        from
+        t_permission
+        where
+        val in
+        <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+
+    <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.permission.Permission" resultMap="BaseResultMap">
+        select
+          <include refid="selFields"/>
+        from
+          t_permission
+        where
+        <if test="id != null">
+            id = #{id,jdbcType=BIGINT}
+        </if>
+    </select>
+
+    <select id="selectAll"  parameterType="com.lmt.mbsp.user.entity.permission.Permission" resultMap="BaseResultMap">
+      select
+        <include refid="selFields"/>
+      from
+        t_permission
+        <include refid="paramSql"/>
+    </select>
+
+    <select id="count" parameterType="com.lmt.mbsp.user.entity.permission.Permission" resultType="java.lang.Integer">
+      select
+        count(*)
+      from
+        t_permission
+        <include refid="paramSql"/>
+    </select>
+
+</mapper>

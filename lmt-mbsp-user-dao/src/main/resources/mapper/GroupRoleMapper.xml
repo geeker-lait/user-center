@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmt.mbsp.user.dao.mapper.group.GroupRoleMapper">
+  <resultMap id="BaseResultMap" type="com.lmt.mbsp.user.entity.group.GroupRole">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="group_id" jdbcType="BIGINT" property="groupId" />
+    <result column="role_id" jdbcType="BIGINT" property="roleId" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_group_role
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <delete id="deleteByGroupId" parameterType="java.lang.Long">
+    delete from t_group_role
+    where group_id = #{groupId,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="com.lmt.mbsp.user.entity.group.GroupRole" useGeneratedKeys="true" keyProperty="id">
+    insert into t_group_role (id, group_id, role_id)
+    values (#{id,jdbcType=BIGINT}, #{groupId,jdbcType=BIGINT}, #{roleId,jdbcType=BIGINT})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.lmt.mbsp.user.entity.group.GroupRole">
+    update t_group_role
+    set group_id = #{groupId,jdbcType=BIGINT},
+      role_id = #{roleId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_group_role
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectByGroupId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_group_role
+    where group_id = #{groupId,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectSingle" parameterType="com.lmt.mbsp.user.entity.group.GroupRole" resultMap="BaseResultMap">
+    select <include refid="selFields"/>
+    from t_group_role
+    <include refid="paramSql"/>
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" parameterType="com.lmt.mbsp.user.entity.group.GroupRole">
+    select <include refid="selFields"/>
+    from t_group_role
+    <include refid="paramSql"/>
+  </select>
+  <select id="count" parameterType="java.lang.Long" resultType="java.lang.Integer">
+    select count(*)
+    from t_group_role
+    <include refid="paramSql"/>
+  </select>
+
+  <!--查询返回字段-->
+  <sql id="selFields">id, group_id, role_id</sql>
+
+  <!--查询参数-->
+  <sql id="paramSql">
+    <where>
+      <if test="id != null">AND id=#{id,jdbcType=BIGINT}</if>
+      <if test="groupId != null">AND group_id=#{groupId,jdbcType=BIGINT}</if>
+      <if test="roleId != null">AND role_id=#{roleId,jdbcType=BIGINT}</if>
+    </where>
+  </sql>
+
+</mapper>
